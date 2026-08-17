@@ -1,0 +1,25 @@
+{
+  "projectId": "kh73qfpjtes1t9x1cm88y0nc8x8cmcpw",
+  "cycle": 1,
+  "phase": "ideation",
+  "status": "active",
+  "promptVersions": {
+    "ideation": "v1",
+    "specification": "v1",
+    "execution": "v2",
+    "verification": "v2"
+  },
+  "cycleCost": {
+    "estimateUsd": 0,
+    "accumulatedUsd": 0,
+    "breachThreshold": 1.5
+  },
+  "verification": {
+    "attempt": 0,
+    "maxAttempts": 3,
+    "flakyCount": 0,
+    "flakyCap": 2
+  },
+  "lastHeartbeatAt": "2026-08-17T22:07:48.137Z",
+  "pendingHumanAction": null
+}
