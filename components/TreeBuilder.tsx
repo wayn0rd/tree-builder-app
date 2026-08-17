@@ -26,6 +26,7 @@ interface StockNode {
 interface SectorStock {
   ticker: string;
   price: string | null;
+  historicalPrice: string | null;
   loading: boolean;
 }
 
@@ -62,6 +63,7 @@ const TreeBuilder = () => {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [interval, setInterval] = useState<'day' | 'week' | 'month' | 'ytd' | 'year'>('day');
   const [dragging, setDragging] = useState<DragState | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -226,7 +228,7 @@ const TreeBuilder = () => {
   };
 
   // Fetch price for a single stock within a sector node
-  const fetchSectorStockPrice = async (nodeId: string, stockIndex: number) => {
+  const fetchSectorStockPrice = async (nodeId: string, stockIndex: number, selectedInterval: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node || node.type !== 'sector') return;
     const stock = node.stocks[stockIndex];
@@ -242,16 +244,21 @@ const TreeBuilder = () => {
     }));
 
     try {
-      const response = await fetch(`/api/stock?ticker=${encodeURIComponent(stock.ticker.trim())}`);
+      const response = await fetch(`/api/stock?ticker=${encodeURIComponent(stock.ticker.trim())}&interval=${selectedInterval}`);
       const data = await response.json();
 
       setNodes(prev => prev.map(n => {
         if (n.id === nodeId && n.type === 'sector') {
           const updatedStocks = [...n.stocks];
           if (!response.ok || data.price == null) {
-            updatedStocks[stockIndex] = { ...updatedStocks[stockIndex], price: 'N/A', loading: false };
+            updatedStocks[stockIndex] = { ...updatedStocks[stockIndex], price: 'N/A', historicalPrice: 'N/A', loading: false };
           } else {
-            updatedStocks[stockIndex] = { ...updatedStocks[stockIndex], price: Number(data.price).toFixed(2), loading: false };
+            updatedStocks[stockIndex] = {
+              ...updatedStocks[stockIndex],
+              price: Number(data.price).toFixed(2),
+              historicalPrice: data.historicalPrice != null ? Number(data.historicalPrice).toFixed(2) : 'N/A',
+              loading: false
+            };
           }
           return { ...n, stocks: updatedStocks };
         }
@@ -262,7 +269,7 @@ const TreeBuilder = () => {
       setNodes(prev => prev.map(n => {
         if (n.id === nodeId && n.type === 'sector') {
           const updatedStocks = [...n.stocks];
-          updatedStocks[stockIndex] = { ...updatedStocks[stockIndex], price: 'Error', loading: false };
+          updatedStocks[stockIndex] = { ...updatedStocks[stockIndex], price: 'Error', historicalPrice: 'Error', loading: false };
           return { ...n, stocks: updatedStocks };
         }
         return n;
@@ -271,11 +278,11 @@ const TreeBuilder = () => {
   };
 
   // Refresh all stock prices in a sector node
-  const refreshAllSectorPrices = (nodeId: string) => {
+  const refreshAllSectorPrices = (nodeId: string, selectedInterval: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node || node.type !== 'sector') return;
     node.stocks.forEach((_, index) => {
-      fetchSectorStockPrice(nodeId, index);
+      fetchSectorStockPrice(nodeId, index, selectedInterval);
     });
   };
 
@@ -283,7 +290,7 @@ const TreeBuilder = () => {
   const addStockToSector = (nodeId: string, ticker: string) => {
     setNodes(prev => prev.map(n => {
       if (n.id === nodeId && n.type === 'sector') {
-        return { ...n, stocks: [...n.stocks, { ticker: ticker.toUpperCase(), price: null, loading: false }] };
+        return { ...n, stocks: [...n.stocks, { ticker: ticker.toUpperCase(), price: null, historicalPrice: null, loading: false }] };
       }
       return n;
     }));
@@ -361,6 +368,20 @@ const TreeBuilder = () => {
               </button>
             </div>
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm">Interval:</label>
+          <select
+            value={interval}
+            onChange={(e) => setInterval(e.target.value as 'day' | 'week' | 'month' | 'ytd' | 'year')}
+            className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+          >
+            <option value="day">Day</option>
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+            <option value="ytd">Year to Date</option>
+            <option value="year">Year</option>
+          </select>
         </div>
         {connectingFrom && (
           <div className="text-yellow-400">
@@ -440,14 +461,26 @@ const TreeBuilder = () => {
                     <div className="text-xs italic" style={{ color: node.textColor, opacity: 0.6 }}>No stocks added</div>
                   ) : (
                     <div className="space-y-1">
-                      {node.stocks.map((stock, i) => (
-                        <div key={i} className="flex justify-between text-xs">
-                          <span className="font-medium" style={{ color: node.textColor }}>{stock.ticker}</span>
-                          <span className="font-bold" style={{ color: node.textColor }}>
-                            {stock.loading ? '...' : stock.price ? `$${stock.price}` : '-'}
-                          </span>
-                        </div>
-                      ))}
+                      {node.stocks.map((stock, i) => {
+                        const currentNum = stock.price ? parseFloat(stock.price) : null;
+                        const historicalNum = stock.historicalPrice ? parseFloat(stock.historicalPrice) : null;
+                        const priceColor = currentNum != null && historicalNum != null
+                          ? (currentNum >= historicalNum ? '#22c55e' : '#ef4444')
+                          : node.textColor;
+                        return (
+                          <div key={i} className="flex justify-between text-xs">
+                            <span className="font-medium" style={{ color: node.textColor }}>{stock.ticker}</span>
+                            <div className="flex gap-2 font-bold">
+                              <span style={{ color: node.textColor, opacity: 0.6 }}>
+                                {stock.loading ? '...' : stock.historicalPrice ? `$${stock.historicalPrice}` : '-'}
+                              </span>
+                              <span style={{ color: priceColor }}>
+                                {stock.loading ? '...' : stock.price ? `$${stock.price}` : '-'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -600,7 +633,7 @@ const TreeBuilder = () => {
                               if (e.key === 'Enter' && newSectorTicker.trim()) {
                                 addStockToSector(selectedNode, newSectorTicker.trim());
                                 const newIndex = selectedNodeData.stocks.length;
-                                setTimeout(() => fetchSectorStockPrice(selectedNode, newIndex), 50);
+                                setTimeout(() => fetchSectorStockPrice(selectedNode, newIndex, interval), 50);
                                 setNewSectorTicker('');
                               }
                             }}
@@ -612,7 +645,7 @@ const TreeBuilder = () => {
                               if (newSectorTicker.trim()) {
                                 addStockToSector(selectedNode, newSectorTicker.trim());
                                 const newIndex = selectedNodeData.stocks.length;
-                                setTimeout(() => fetchSectorStockPrice(selectedNode, newIndex), 50);
+                                setTimeout(() => fetchSectorStockPrice(selectedNode, newIndex, interval), 50);
                                 setNewSectorTicker('');
                               }
                             }}
@@ -623,7 +656,7 @@ const TreeBuilder = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => refreshAllSectorPrices(selectedNode)}
+                        onClick={() => refreshAllSectorPrices(selectedNode, interval)}
                         className="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
                       >
                         Refresh All Prices
