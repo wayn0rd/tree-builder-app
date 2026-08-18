@@ -40,6 +40,13 @@ export async function GET(request: NextRequest) {
 
     const meta = result.meta;
     const currentPrice = meta?.regularMarketPrice ?? null;
+    // D1/A2: previous regular-session close, with chartPreviousClose fallback.
+    const previousClose = meta?.previousClose ?? meta?.chartPreviousClose ?? null;
+    // A3: unrounded daily % change; null when inputs are missing or previousClose is 0.
+    const changePercent =
+      currentPrice != null && previousClose != null && previousClose !== 0
+        ? ((currentPrice - previousClose) / previousClose) * 100
+        : null;
 
     // Get historical price from the beginning of the range
     const closePrices = result.indicators?.quote?.[0]?.close;
@@ -58,6 +65,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ticker: meta.symbol,
       price: currentPrice,
+      previousClose: previousClose,
+      changePercent: changePercent,
       historicalPrice: historicalPrice
     });
   } catch (error) {
