@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Hierarchical Tree Builder',
-  description: 'Create hierarchical trees with text labels and live stock prices',
+  title: 'Sector Watchlist',
+  description: 'Tag-driven stock watchlist with live prices and daily change, grouped into sector cards',
 }
 
 export default function RootLayout({
