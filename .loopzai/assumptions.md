@@ -23,3 +23,8 @@
 **Chosen:** unknown tags stay in the selection (and URL) but simply match no cards; only tags actually present in the watchlist render as filter chips or cards. A selection consisting solely of unknown tags shows a grid with no cards (not the empty-state, which is reserved for a zero-stock watchlist per U7).
 **Why:** simplest behavior consistent with D4 (URL restores the same filtered view) and U7 (empty-state is about zero stocks, not zero filter matches); silently rewriting the URL would fight direct navigation.
 **Wrong if:** review wants stale tags pruned from the URL on load, or a "no matches" placeholder for filtered-to-nothing views.
+
+<!-- loopzai-reviewed: assumption-0001 accepted 2026-08-18T19:25:05.093Z -->
+<!-- loopzai-reviewed: assumption-0002 accepted 2026-08-18T19:25:05.093Z -->
+<!-- loopzai-reviewed: assumption-0003 accepted 2026-08-18T19:25:05.093Z -->
+<!-- loopzai-reviewed: assumption-0004 accepted 2026-08-18T19:25:05.093Z -->
