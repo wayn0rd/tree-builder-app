@@ -72,9 +72,12 @@ test.describe('T-S: Static safety checks', () => {
       ).toBe(true);
     }
 
-    // (c) the literal secret appears nowhere tracked outside test files
+    // (c) the literal secret appears nowhere tracked outside test files.
+    // Amended per .loopzai/spec-amendments.md (2026-08-25 blocking-pause
+    // answer): sweep scope narrowed to application code — `.loopzai/`
+    // narrative/process documents are excluded from the target set.
     const secretFiles = gitGrepFiles(SECRET, ['.']).filter(
-      (f) => !f.startsWith('tests/')
+      (f) => !f.startsWith('tests/') && !f.startsWith('.loopzai/')
     );
     expect(
       secretFiles,
