@@ -15,11 +15,11 @@
     "breachThreshold": 1.5
   },
   "verification": {
-    "attempt": 0,
+    "attempt": 2,
     "maxAttempts": 3,
     "flakyCount": 0,
     "flakyCap": 2
   },
-  "lastHeartbeatAt": "2026-08-25T07:16:33.106Z",
+  "lastHeartbeatAt": "2026-08-25T20:20:56.412Z",
   "pendingHumanAction": null
 }
