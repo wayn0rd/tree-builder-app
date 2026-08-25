@@ -137,8 +137,8 @@ BLOCKING PAUSE on frozen T-S1 clause (c). Fixing clause (a) unmasked a latent, d
 timestamp: 2026-08-25T20:41:01Z
 phase: execution
 cycle: 2
-status: in_progress
-commitSha: null
-filesTouched: []
+status: committed
+commitSha: "a7c89da"
+filesTouched: ["tests/cycle2-static.spec.ts", ".loopzai/execution-log.md", ".loopzai/state.json"]
 ```
 Apply the human-authorized minimal adjustment to frozen tests/cycle2-static.spec.ts per the 2026-08-25T20:39/20:40 blocking-pause amendments: exclude `.loopzai/` from T-S1 clause (c)'s grep target set (clauses a/b/d untouched), verify the static suite passes, and carry forward the coordinator's uncommitted state.json heartbeat verbatim (precedent: entry-0001/0010).
