@@ -1,10 +1,10 @@
 import { defineConfig } from '@playwright/test';
 
 /**
- * LoopzAI cycle 1 — frozen verification test config.
- * Derived from .loopzai/spec.md §10 ("Setup for all tests: npm install,
- * then npm run dev (default port 3000) — or Playwright's webServer
- * equivalent").
+ * LoopzAI verification test config (cycle 1, updated for cycle 2's frozen
+ * environment: .loopzai/spec.md §10 — "Web server:
+ * NEXT_PUBLIC_E2E_TEST_MODE=1 npm run dev on port 3000 (or Playwright
+ * webServer equivalent). Tests run serially (shared backend state).")
  *
  * retries: 0 — the spec's flake rule (live-API retry with >= 30s waits)
  * is implemented explicitly inside the T-A tests; nothing else may be
@@ -22,6 +22,9 @@ export default defineConfig({
   },
   webServer: {
     command: 'npm run dev',
+    // §10: the E2E web server runs with the test sign-in form enabled.
+    // (T-A api tests are unaffected; production builds never set this.)
+    env: { ...process.env, NEXT_PUBLIC_E2E_TEST_MODE: '1' },
     port: 3000,
     reuseExistingServer: true,
     timeout: 120_000,

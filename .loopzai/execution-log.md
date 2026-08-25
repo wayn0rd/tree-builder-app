@@ -71,8 +71,19 @@ M4 UI: share management panel (U5) — share-button in the header opens share-pa
 timestamp: 2026-08-25T06:05:00Z
 phase: execution
 cycle: 2
+status: committed
+commitSha: "bfa1df4"
+filesTouched: ["app/shared/[token]/page.tsx", ".loopzai/execution-log.md"]
+```
+M5: read-only shared page at /shared/<token> (U6/D8) — same cards/filters/refresh as the owner view via share.get, zero mutating controls, share-invalid screen for unknown/revoked tokens, no sign-in redirect.
+
+### entry-0008
+```yaml
+timestamp: 2026-08-25T06:15:00Z
+phase: execution
+cycle: 2
 status: in_progress
 commitSha: null
 filesTouched: []
 ```
-M5: read-only shared page at /shared/<token> (U6/D8) — same cards/filters/refresh as the owner view via share.get, zero mutating controls, share-invalid screen for unknown/revoked tokens, no sign-in redirect.
+M6 hardening: README "Environment & test setup" section (P3), auth-key generation script, E2E_TEST_SECRET line in gitignored .env.local, playwright webServer runs in test mode per §10, T-S1/T-S2/T-S3 static sweeps, and P2 build checks (npm run build + npx convex dev --once).
