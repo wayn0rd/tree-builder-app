@@ -5,32 +5,32 @@
     {
       "id": "M1",
       "title": "Convex foundation: schema (S1–S3), client provider wiring in `app/layout.tsx`, Convex Auth with Google + `test-login` (D10, F8), `users.me` (F1), sign-in screen + not-invited wall (U1, U2)",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M2",
       "title": "Whitelist: functions (F5), seed (D6), admin page (U4), header/admin-link (U3)",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M3",
       "title": "Stocks on Convex: functions (F2–F4), port the main page + form to Convex queries/mutations with full Cycle-1 parity (D11), remove localStorage (P1)",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M4",
       "title": "Share backend + owner UI: functions (F6–F7), share panel (U5)",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M5",
       "title": "Shared read-only page (D8, U6)",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M6",
       "title": "Hardening & launch: `testing.reset` env-gating pass, README env/test docs (P3), builds green (P2), prod env vars + seed + Google OAuth client live on `www.sectorwatchlist.com` (P4)",
-      "status": "pending"
+      "status": "complete"
     }
   ]
 }
