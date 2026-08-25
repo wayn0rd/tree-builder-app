@@ -60,8 +60,19 @@ M2 UI: admin whitelist-manager page at /admin (U4) — email input, add button, 
 timestamp: 2026-08-25T05:56:00Z
 phase: execution
 cycle: 2
+status: committed
+commitSha: "3b9f9f8"
+filesTouched: ["components/SharePanel.tsx", "app/page.tsx", ".loopzai/execution-log.md"]
+```
+M4 UI: share management panel (U5) — share-button in the header opens share-panel; copy-on-create reveal of the full URL exactly once (share-created-url); persistent rows show only the 8-char share-link-id with revoke.
+
+### entry-0007
+```yaml
+timestamp: 2026-08-25T06:05:00Z
+phase: execution
+cycle: 2
 status: in_progress
 commitSha: null
 filesTouched: []
 ```
-M4 UI: share management panel (U5) — share-button in the header opens share-panel; copy-on-create reveal of the full URL exactly once (share-created-url); persistent rows show only the 8-char share-link-id with revoke.
+M5: read-only shared page at /shared/<token> (U6/D8) — same cards/filters/refresh as the owner view via share.get, zero mutating controls, share-invalid screen for unknown/revoked tokens, no sign-in redirect.
