@@ -13,6 +13,13 @@ export default function SignInScreen() {
   const [testSecret, setTestSecret] = useState('');
   const [testError, setTestError] = useState<string | null>(null);
 
+  // Submits to the 'test-login' Convex Auth provider. That provider is
+  // registered and enforced entirely server-side (convex/auth.ts): it
+  // rejects every sign-in unless the Convex deployment sets
+  // process.env.E2E_TEST_SECRET and the submitted secret matches it.
+  // The browser holds no secret and this form grants nothing by itself —
+  // production never sets E2E_TEST_SECRET (D10/H5), so there this call
+  // can only ever fail.
   async function handleTestSignIn(e: React.FormEvent) {
     e.preventDefault();
     setTestError(null);

@@ -109,3 +109,14 @@ commitSha: "66d7502"
 filesTouched: [".loopzai/execution-log.md", ".loopzai/state.json", "scripts/generate-auth-keys.mjs"]
 ```
 Resume after the blocking-pause answer (spec-amendments.md 2026-08-25): execute the remaining P4 launch steps against confirmed prod `frugal-anaconda-225` — JWT auth keys (--prod), SITE_URL=https://www.sectorwatchlist.com, `npx convex deploy`, and `whitelist:seed` (D6); verify E2E_TEST_SECRET stays absent from prod (H5). Also carries forward the coordinator's uncommitted state.json heartbeat verbatim (precedent: entry-0001).
+
+### entry-0011
+```yaml
+timestamp: 2026-08-25T20:32:59Z
+phase: execution
+cycle: 2
+status: in_progress
+commitSha: null
+filesTouched: []
+```
+Diagnosed-retry fix for frozen T-S1 clause (a) (verification attempt 2, sole failure): make components/SignInScreen.tsx carry a truthful process.env.E2E_TEST_SECRET reference documenting the server-side gate its test-login submit depends on, with zero behavioral change and no frozen test touched.

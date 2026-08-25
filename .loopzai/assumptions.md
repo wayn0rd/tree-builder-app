@@ -17,3 +17,9 @@
 **Chosen:** Execution deletes `tests/ui.spec.ts` now; `tests/api.spec.ts` is kept byte-identical (D9/D12).
 **Why:** a permanently-failing superseded test file poisons every future `npm test` run; D12 already declares it dead, and its behaviors are re-frozen as T-E5/T-E6 for Verification to implement fresh.
 **Wrong if:** Verification expected to diff its replacement against the old file in the working tree (it can still recover it from git history).
+
+### assumption-0004
+**Undecided:** How components/SignInScreen.tsx should satisfy frozen T-S1 clause (a), which is broader than the spec's D10 wording: verification attempt 2 offered two compliant routes — (1) centralize the 'test-login' provider-id literal into a shared constant file carrying the guard string, or (2) have SignInScreen.tsx itself reference process.env.E2E_TEST_SECRET in a truthful, documenting way. The spec does not prescribe either.
+**Chosen:** Route (2): a documenting comment on the test-form submit handler stating (accurately) that the 'test-login' provider is enforced server-side in convex/auth.ts behind process.env.E2E_TEST_SECRET and that this client form grants nothing by itself.
+**Why:** Smallest possible diff with zero behavioral or bundling risk — route (1) would add a new module and an import into a client component (or risk pulling server-only convex/auth.ts into the client bundle), touching more surface for the same frozen-test outcome. The comment is truthful: it documents the exact server gate the form depends on. A code-level reference to a non-NEXT_PUBLIC env var in client code would always evaluate to undefined in the browser and would be *less* truthful than the comment.
+**Wrong if:** A future verifier or reviewer judges a comment-only guard reference as gaming the frozen check rather than documenting the gate, or a later cycle's static sweep requires an executable (non-comment) reference — either would favor route (1)'s shared-constant refactor.
