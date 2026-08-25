@@ -38,8 +38,19 @@ M1–M4 backend: Convex schema (S1–S3), auth config with Google + env-gated te
 timestamp: 2026-08-25T05:30:00Z
 phase: execution
 cycle: 2
+status: committed
+commitSha: "7b3f2a7"
+filesTouched: ["app/ConvexClientProvider.tsx", "app/layout.tsx", "app/page.tsx", "components/SignInScreen.tsx", "components/NotInvitedWall.tsx", "components/WatchlistBoard.tsx", "components/SectorCard.tsx", "components/StockForm.tsx", "lib/useQuotes.ts", "lib/watchlist.ts", "tests/ui.spec.ts", ".loopzai/assumptions.md", ".loopzai/execution-log.md"]
+```
+M1 UI + M3: wire ConvexAuthProvider into the app, add sign-in screen (U1) and not-invited wall (U2), port the dashboard from localStorage to Convex queries/mutations with Cycle-1 parity (D11), signed-in header with user-email/signout/admin-link (U3), and remove localStorage persistence (P1, D1); delete superseded tests/ui.spec.ts (D12).
+
+### entry-0005
+```yaml
+timestamp: 2026-08-25T05:48:00Z
+phase: execution
+cycle: 2
 status: in_progress
 commitSha: null
 filesTouched: []
 ```
-M1 UI + M3: wire ConvexAuthProvider into the app, add sign-in screen (U1) and not-invited wall (U2), port the dashboard from localStorage to Convex queries/mutations with Cycle-1 parity (D11), signed-in header with user-email/signout/admin-link (U3), and remove localStorage persistence (P1, D1); delete superseded tests/ui.spec.ts (D12).
+M2 UI: admin whitelist-manager page at /admin (U4) — email input, add button, per-email rows with remove; access-denied for any non-admin or unauthenticated visitor.
