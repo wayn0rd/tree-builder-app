@@ -49,8 +49,19 @@ M1 UI + M3: wire ConvexAuthProvider into the app, add sign-in screen (U1) and no
 timestamp: 2026-08-25T05:48:00Z
 phase: execution
 cycle: 2
+status: committed
+commitSha: "2c8e1c5"
+filesTouched: ["app/admin/page.tsx", ".loopzai/execution-log.md"]
+```
+M2 UI: admin whitelist-manager page at /admin (U4) — email input, add button, per-email rows with remove; access-denied for any non-admin or unauthenticated visitor.
+
+### entry-0006
+```yaml
+timestamp: 2026-08-25T05:56:00Z
+phase: execution
+cycle: 2
 status: in_progress
 commitSha: null
 filesTouched: []
 ```
-M2 UI: admin whitelist-manager page at /admin (U4) — email input, add button, per-email rows with remove; access-denied for any non-admin or unauthenticated visitor.
+M4 UI: share management panel (U5) — share-button in the header opens share-panel; copy-on-create reveal of the full URL exactly once (share-created-url); persistent rows show only the 8-char share-link-id with revoke.

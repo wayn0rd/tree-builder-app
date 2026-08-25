@@ -11,6 +11,7 @@ import { api } from '../convex/_generated/api';
 import type { Id } from '../convex/_generated/dataModel';
 import NotInvitedWall from '../components/NotInvitedWall';
 import SignInScreen from '../components/SignInScreen';
+import SharePanel from '../components/SharePanel';
 import StockForm from '../components/StockForm';
 import WatchlistBoard from '../components/WatchlistBoard';
 import { Stock } from '../lib/watchlist';
@@ -53,6 +54,7 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Stock | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Stock | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const didInitQuotes = useRef(false);
 
   // null = server list still loading (R5: no flash of empty-state).
@@ -146,6 +148,14 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
               + Add stock
             </button>
             <button
+              data-testid="share-button"
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Share
+            </button>
+            <button
               data-testid="signout-button"
               type="button"
               onClick={() => void signOut()}
@@ -166,6 +176,8 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
           }}
           onDelete={(stock) => setPendingDelete(stock)}
         />
+
+        {shareOpen && <SharePanel onClose={() => setShareOpen(false)} />}
 
         {formOpen && (
           <StockForm
