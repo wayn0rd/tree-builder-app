@@ -29,3 +29,9 @@
 **Chosen:** a Playwright `globalSetup` (new file `tests/global-setup.ts`, wired in `playwright.config.ts` — no frozen test file touched) that performs a real Chromium navigation to `/`, waits for `networkidle`, and retries until the load completes with an OK response and zero `pageerror`s (120s deadline). Only `/` is warmed.
 **Why:** the attempt-3 failure artifact was a syntactically broken on-demand-compiled `_next` chunk *executed by the browser*; a bare HTML fetch never fetches or executes chunks, so a real navigation with a zero-pageerror gate is the smallest mechanism that actually covers the observed failure. globalSetup runs once before every test (Playwright starts `webServer` before globalSetup, and the retry loop absorbs any residual startup lag). Warming only `/` follows the amendment's letter; `/admin` and `/shared` share the compiled app chunks and compiled without incident in attempts 2 and 3.
 **Wrong if:** a future run shows the same first-compile race on `/admin` or `/shared/<token>` navigations (would justify warming those routes too), or a Playwright version change starts globalSetup before the webServer is listening for longer than the 120s retry deadline.
+
+<!-- loopzai-reviewed: assumption-0001 accepted 2026-08-25T23:48:47.424Z -->
+<!-- loopzai-reviewed: assumption-0002 accepted 2026-08-25T23:48:47.424Z -->
+<!-- loopzai-reviewed: assumption-0003 accepted 2026-08-25T23:48:47.424Z -->
+<!-- loopzai-reviewed: assumption-0004 accepted 2026-08-25T23:48:47.424Z -->
+<!-- loopzai-reviewed: assumption-0005 accepted 2026-08-25T23:48:47.424Z -->
