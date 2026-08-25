@@ -39,3 +39,8 @@ needed** (auth/whitelist is foundational to both persistence and sharing).
 logs, account deletion, session-management UI, invitation emails, migration
 tooling, granular/per-sector shares, richer roles.*
 
+
+## Amendment — blocking-pause answer (cycle 2, 2026-08-25T07:16:33.081Z)
+
+**Question:** Spec P4 names combative-minnow-928 as Convex prod but it is actually the project's DEV deployment (real prod: frugal-anaconda-225; Vercel's NEXT_PUBLIC_CONVEX_URL reportedly points at the dev one, which must carry E2E_TEST_SECRET for tests while prod never may, per D10/H5) — which Convex deployment should www.sectorwatchlist.com use, and please create the Google OAuth client (R4) so AUTH_GOOGLE_ID/SECRET can be set on it?
+**Decision (human):** Production deployment confirmed: frugal-anaconda-225 (verified via npx convex deploy --dry-run). Vercel NEXT_PUBLIC_CONVEX_URL already repointed to https://frugal-anaconda-225.convex.cloud (Production env). Google OAuth client created in GCP project sectorwatchlist; AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET set on the prod deployment (verified present via npx convex env list --prod). Test users trixiematic415@gmail.com + waynehoy@gmail.com added to the OAuth consent screen. Proceed with remaining P4 launch steps: convex deploy to prod, generate-auth-keys --prod, set --prod SITE_URL=https://www.sectorwatchlist.com, and prod whitelist:seed.
