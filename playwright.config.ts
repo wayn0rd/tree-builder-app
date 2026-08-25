@@ -12,6 +12,11 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  // Harness warm-up per .loopzai/spec-amendments.md (escalation
+  // resolution, 2026-08-25T21:09Z): navigate `/` and wait for the dev
+  // server's first-request compile BEFORE any e2e test runs. Timing
+  // only; no test assertions are affected.
+  globalSetup: './tests/global-setup.ts',
   timeout: 240_000, // T-A flake rule allows up to 3 retries x 30s waits
   retries: 0,
   workers: 1, // tests share localStorage/origin state; run serially

@@ -142,3 +142,14 @@ commitSha: "a7c89da"
 filesTouched: ["tests/cycle2-static.spec.ts", ".loopzai/execution-log.md", ".loopzai/state.json"]
 ```
 Apply the human-authorized minimal adjustment to frozen tests/cycle2-static.spec.ts per the 2026-08-25T20:39/20:40 blocking-pause amendments: exclude `.loopzai/` from T-S1 clause (c)'s grep target set (clauses a/b/d untouched), verify the static suite passes, and carry forward the coordinator's uncommitted state.json heartbeat verbatim (precedent: entry-0001/0010).
+
+### entry-0014
+```yaml
+timestamp: 2026-08-25T21:15:00Z
+phase: execution
+cycle: 2
+status: in_progress
+commitSha: null
+filesTouched: []
+```
+Implement the escalation-resolution amendment (2026-08-25T21:09Z): add a Playwright globalSetup warm-up that navigates to `/` and waits for the route to compile/load cleanly before any e2e test runs (harness timing only; no test file modified), smoke-test it against a cold dev server, and carry forward the coordinator's uncommitted state.json heartbeat verbatim (precedent: entry-0001/0010/0013).
