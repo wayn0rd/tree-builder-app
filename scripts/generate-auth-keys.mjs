@@ -25,7 +25,8 @@ for (const [name, value] of [
   ['JWT_PRIVATE_KEY', privateKey],
   ['JWKS', jwks],
 ]) {
-  execFileSync('npx', ['convex', 'env', 'set', ...extraArgs, name, value], {
+  // `--` stops the CLI from parsing the PEM's leading dashes as options.
+  execFileSync('npx', ['convex', 'env', 'set', ...extraArgs, '--', name, value], {
     stdio: 'inherit',
   });
 }

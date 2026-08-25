@@ -98,3 +98,14 @@ commitSha: "11563e2"
 filesTouched: [".loopzai/execution-log.md"]
 ```
 BLOCKING PAUSE on P4 (production launch). The decision meets both pause criteria. (a) Not derivable from the spec: P4 commits prod to `https://combative-minnow-928.convex.cloud`, but the Convex CLI shows `combative-minnow-928` is this project's DEV deployment (real prod is `frugal-anaconda-225`), and the frozen test plan (§10) requires the dev deployment to carry `E2E_TEST_SECRET` — so following P4's URL literally would point www.sectorwatchlist.com at a deployment with the test-only sign-in backdoor enabled, contradicting D10/H5 ("production never sets E2E_TEST_SECRET"). The brief says Vercel's `NEXT_PUBLIC_CONVEX_URL` was set (outside the loop, N7) to combative-minnow-928, so fixing this needs a Vercel env change I cannot derive authority for from the spec. (b) Expensive/externally visible: it decides the public production site's backend and its security posture, and the remaining launch steps are human-only anyway — creating the Google OAuth client in Google Cloud Console (R4) and setting AUTH_GOOGLE_ID/AUTH_GOOGLE_SECRET on the chosen prod deployment. No prod deploy, no prod `whitelist.seed` (D6), and no prod env changes were performed — deliberately not guessing past the pause. Everything machine-testable is complete and committed: M1–M5 fully implemented and smoke-tested against dev (function/ACL surface, auth gates, admin page, share links incl. hashed-token + owner-dark semantics, shared read-only page, Cycle-1 parity behaviors), T-A1–A6 pass unmodified, T-S1–S3 sweeps clean, P1/P2/P3 done. Once the human answers (which deployment is prod + OAuth client created + Vercel URL confirmed), the remaining work is: `npx convex deploy`, `node scripts/generate-auth-keys.mjs --prod`, `npx convex env set --prod SITE_URL https://www.sectorwatchlist.com`, the two AUTH_GOOGLE_* vars, and `npx convex run --prod whitelist:seed` (all documented in README §"Environment & test setup").
+
+### entry-0010
+```yaml
+timestamp: 2026-08-25T07:17:24Z
+phase: execution
+cycle: 2
+status: in_progress
+commitSha: null
+filesTouched: []
+```
+Resume after the blocking-pause answer (spec-amendments.md 2026-08-25): execute the remaining P4 launch steps against confirmed prod `frugal-anaconda-225` — JWT auth keys (--prod), SITE_URL=https://www.sectorwatchlist.com, `npx convex deploy`, and `whitelist:seed` (D6); verify E2E_TEST_SECRET stays absent from prod (H5). Also carries forward the coordinator's uncommitted state.json heartbeat verbatim (precedent: entry-0001).
