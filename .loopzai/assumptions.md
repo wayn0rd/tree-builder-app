@@ -11,3 +11,9 @@
 **Chosen:** add a third field `display: string` (the token's first 8 chars) to the `shareLinks` table.
 **Why:** it is the only way to satisfy F6's "captured at creation" wording; 8 chars (48 bits) of a ≥32-char token is non-authoritative and cannot be used as a bearer token, so D7's security property holds. T-S3 only forbids a plaintext `token` field.
 **Wrong if:** Verification treats S3's field list as exhaustive and fails the schema on any extra field.
+
+### assumption-0003
+**Undecided:** D12 says Cycle-1's `tests/ui.spec.ts` "is superseded; Verification replaces it", but not who deletes the old file — leaving it in place makes `npm test` fail (it cannot pass behind the login wall).
+**Chosen:** Execution deletes `tests/ui.spec.ts` now; `tests/api.spec.ts` is kept byte-identical (D9/D12).
+**Why:** a permanently-failing superseded test file poisons every future `npm test` run; D12 already declares it dead, and its behaviors are re-frozen as T-E5/T-E6 for Verification to implement fresh.
+**Wrong if:** Verification expected to diff its replacement against the old file in the working tree (it can still recover it from git history).

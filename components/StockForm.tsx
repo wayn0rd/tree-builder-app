@@ -13,7 +13,9 @@ interface StockFormProps {
   initial: Stock | null;
   /** Current watchlist (duplicate-ticker check + tag suggestions). */
   stocks: Stock[];
-  onSave: (stock: Omit<Stock, 'id'>) => void;
+  /** May reject (server-side F4 validation); the error is surfaced in
+   *  stock-form-error and the form stays open. */
+  onSave: (stock: Omit<Stock, 'id'>) => Promise<void>;
   onClose: () => void;
 }
 
@@ -46,7 +48,7 @@ export default function StockForm({
     setTags(tags.filter((t) => t !== tag));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     // Pending text in the tag input counts as one candidate tag (unsplit).
     const candidateTags = tagInput.trim()
@@ -61,7 +63,12 @@ export default function StockForm({
       setError(result.error);
       return;
     }
-    onSave(result.stock);
+    try {
+      await onSave(result.stock);
+    } catch (err) {
+      // Server-side F4 rejection: surface it, do not save/close.
+      setError(err instanceof Error ? err.message : 'Could not save.');
+    }
   }
 
   return (

@@ -27,8 +27,19 @@ M1: install convex + @convex-dev/auth + @auth/core dependencies and link/provisi
 timestamp: 2026-08-25T05:22:00Z
 phase: execution
 cycle: 2
+status: committed
+commitSha: "ef4ff8e"
+filesTouched: ["convex/schema.ts", "convex/auth.ts", "convex/auth.config.ts", "convex/http.ts", "convex/users.ts", "convex/whitelist.ts", "convex/stocks.ts", "convex/share.ts", "convex/testing.ts", "convex/lib/access.ts", "convex/lib/sha256.ts", "convex/lib/validate.ts", "convex/_generated/api.d.ts", "convex/_generated/api.js", "convex/_generated/dataModel.d.ts", "convex/_generated/server.d.ts", "convex/_generated/server.js", ".loopzai/assumptions.md", ".loopzai/execution-log.md"]
+```
+M1–M4 backend: Convex schema (S1–S3), auth config with Google + env-gated test-login (D10/F8), users.me (F1), whitelist functions + seed (F5/D6), stocks functions with server-side validation (F2–F4), share functions with hashed tokens (F6/F7/D7), testing.reset (D10); pushed to dev and smoke-tested end-to-end via ConvexHttpClient.
+
+### entry-0004
+```yaml
+timestamp: 2026-08-25T05:30:00Z
+phase: execution
+cycle: 2
 status: in_progress
 commitSha: null
 filesTouched: []
 ```
-M1–M4 backend: Convex schema (S1–S3), auth config with Google + env-gated test-login (D10/F8), users.me (F1), whitelist functions + seed (F5/D6), stocks functions with server-side validation (F2–F4), share functions with hashed tokens (F6/F7/D7), testing.reset (D10); pushed to dev and smoke-tested end-to-end via ConvexHttpClient.
+M1 UI + M3: wire ConvexAuthProvider into the app, add sign-in screen (U1) and not-invited wall (U2), port the dashboard from localStorage to Convex queries/mutations with Cycle-1 parity (D11), signed-in header with user-email/signout/admin-link (U3), and remove localStorage persistence (P1, D1); delete superseded tests/ui.spec.ts (D12).

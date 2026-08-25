@@ -54,8 +54,10 @@ interface SectorCardProps {
   tag: string;
   stocks: Stock[];
   quotes: Record<string, Quote | undefined>;
-  onEdit: (stock: Stock) => void;
-  onDelete: (stock: Stock) => void;
+  /** Omit both handlers for the read-only shared page (U6/D8: no
+   *  edit-stock/delete-stock buttons render at all). */
+  onEdit?: (stock: Stock) => void;
+  onDelete?: (stock: Stock) => void;
 }
 
 export default function SectorCard({
@@ -119,28 +121,34 @@ export default function SectorCard({
                   {formatChange(changePercent)}
                 </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <button
-                  data-testid="edit-stock"
-                  type="button"
-                  onClick={() => onEdit(stock)}
-                  aria-label={`Edit ${stock.ticker}`}
-                  title="Edit"
-                  className="rounded px-1.5 py-0.5 text-xs text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                >
-                  ✎
-                </button>
-                <button
-                  data-testid="delete-stock"
-                  type="button"
-                  onClick={() => onDelete(stock)}
-                  aria-label={`Delete ${stock.ticker}`}
-                  title="Delete"
-                  className="rounded px-1.5 py-0.5 text-xs text-gray-400 hover:bg-red-50 hover:text-red-600"
-                >
-                  🗑
-                </button>
-              </div>
+              {(onEdit || onDelete) && (
+                <div className="flex flex-col gap-1">
+                  {onEdit && (
+                    <button
+                      data-testid="edit-stock"
+                      type="button"
+                      onClick={() => onEdit(stock)}
+                      aria-label={`Edit ${stock.ticker}`}
+                      title="Edit"
+                      className="rounded px-1.5 py-0.5 text-xs text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      ✎
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      data-testid="delete-stock"
+                      type="button"
+                      onClick={() => onDelete(stock)}
+                      aria-label={`Delete ${stock.ticker}`}
+                      title="Delete"
+                      className="rounded px-1.5 py-0.5 text-xs text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      🗑
+                    </button>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}

@@ -1,5 +1,7 @@
-// Watchlist data layer — localStorage persistence + validation.
-// Spec: .loopzai/spec.md §3 (S1–S4).
+// Watchlist client-side types + validation. Persistence lives in Convex
+// (Cycle-2 spec D1/S1); the Cycle-1 localStorage layer was removed (P1).
+// Server-side validation (F4, convex/lib/validate.ts) is authoritative;
+// this mirror exists for immediate form UX.
 
 export interface Stock {
   id: string;
@@ -8,61 +10,7 @@ export interface Stock {
   tags: string[];
 }
 
-export interface Watchlist {
-  version: 1;
-  stocks: Stock[];
-}
-
-export const STORAGE_KEY = 'tickerWatchlist.v1';
-
 export const TICKER_RE = /^[A-Za-z0-9.^-]+$/;
-
-/**
- * S4: absent or unparseable stored JSON → empty watchlist, never a crash.
- * Malformed entries are dropped silently (no console noise — T-U7 requires
- * a clean console on corrupt storage).
- */
-export function loadWatchlist(): Stock[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.stocks)) {
-      return [];
-    }
-    return parsed.stocks.filter(
-      (s: unknown): s is Stock =>
-        !!s &&
-        typeof s === 'object' &&
-        typeof (s as Stock).id === 'string' &&
-        typeof (s as Stock).ticker === 'string' &&
-        typeof (s as Stock).name === 'string' &&
-        Array.isArray((s as Stock).tags) &&
-        (s as Stock).tags.every((t) => typeof t === 'string')
-    );
-  } catch {
-    return [];
-  }
-}
-
-/** S1/S3: write-through persistence of the versioned schema. */
-export function saveWatchlist(stocks: Stock[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const data: Watchlist = { version: 1, stocks };
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    // Storage full/unavailable: the in-memory list still works this session.
-  }
-}
-
-export function makeId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 export interface StockInput {
   ticker: string;
@@ -76,7 +24,7 @@ export type ValidationResult =
   | { ok: false; error: string };
 
 /**
- * S2 validation. `editingId` excludes the stock being edited from the
+ * F4 mirror. `editingId` excludes the stock being edited from the
  * duplicate-ticker check.
  */
 export function validateStock(
