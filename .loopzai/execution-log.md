@@ -16,8 +16,8 @@ M1 surface: add components/ManageStocksModal.tsx (U2/U3/U5, D12/D13) and wire th
 timestamp: 2026-09-20T13:20:00Z
 phase: execution
 cycle: 3
-status: in_progress
-commitSha: null
-filesTouched: []
+status: committed
+commitSha: "47df86ec1bb976e1f5ce3251edd95f2b03b2b3b3"
+filesTouched: [".loopzai/execution-log.md","README.md","app/page.tsx"]
 ```
 M2 dismissal + docs: add the manageOpen-gated document keydown Escape listener to app/page.tsx (D10 topmost-layer priority: StockForm, then delete-confirm, then Manage Stocks) and add the Manage Stocks sentence to README.md (P1).
