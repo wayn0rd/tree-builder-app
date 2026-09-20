@@ -21,3 +21,14 @@ commitSha: "47df86ec1bb976e1f5ce3251edd95f2b03b2b3b3"
 filesTouched: [".loopzai/execution-log.md","README.md","app/page.tsx"]
 ```
 M2 dismissal + docs: add the manageOpen-gated document keydown Escape listener to app/page.tsx (D10 topmost-layer priority: StockForm, then delete-confirm, then Manage Stocks) and add the Manage Stocks sentence to README.md (P1).
+
+### entry-0003
+```yaml
+timestamp: 2026-09-20T21:05:00Z
+phase: execution
+cycle: 3
+status: in_progress
+commitSha: null
+filesTouched: []
+```
+Test-harness repair per spec-amendments.md (human-authorized amendment #1): in tests/cycle3-e2e.spec.ts T-E9 replace the two non-retrying `count()` checks right after goto(sharedPath) with the retrying `expect(locator).not.toHaveCount(0)` so shared-page presence retries within the frozen 15 s expect timeout; no product code changed and the U7/D2 absence assertions are untouched.

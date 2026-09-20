@@ -664,8 +664,10 @@ test.describe('T-E (cycle 3): Manage Stocks E2E (Playwright, stubbed quotes)', (
     const anonPage = await anonCtx.newPage();
     await anonPage.setViewportSize(VIEWPORT);
     await anonPage.goto(sharedPath);
-    expect(await anonPage.getByTestId('sector-card').count()).toBeGreaterThanOrEqual(1);
-    expect(await anonPage.getByTestId('stock-row').count()).toBeGreaterThanOrEqual(1);
+    // Amended (spec-amendments.md, cycle 3): retrying presence checks (>= 1)
+    // within the frozen 15 s expect timeout instead of a 0 ms count() snapshot.
+    await expect(anonPage.getByTestId('sector-card')).not.toHaveCount(0);
+    await expect(anonPage.getByTestId('stock-row')).not.toHaveCount(0);
     await expect(anonPage.getByTestId('stock-row').first()).toBeVisible();
     await expect(anonPage.locator('[data-testid^="manage-stocks-"]')).toHaveCount(0);
     await expect(anonPage.getByTestId('edit-stock')).toHaveCount(0);
