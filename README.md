@@ -6,7 +6,10 @@ each showing live prices and daily % change — green up, red down. Tag
 chips filter the visible cards and mirror into the URL
 (`/?tags=Tech,Cloud`). Watchlists are private per user; read-only
 snapshots can be shared via tokenized links (`/shared/<token>`) that
-need no sign-in and can be revoked at any time.
+need no sign-in and can be revoked at any time. A **Manage Stocks**
+button in the header opens one ticker-sorted list of every stock
+(ticker, name, tags) with Edit and Delete controls, so entries can be
+maintained without hunting through the cards.
 
 **Live at:** https://www.sectorwatchlist.com
 

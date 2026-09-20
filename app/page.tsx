@@ -81,6 +81,31 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stockDocs]);
 
+  // Cycle 3 D10: Escape handling exists only while Manage Stocks is open.
+  // One document-level listener, registered only for manageOpen === true and
+  // removed when it becomes false / on unmount. It closes exactly the topmost
+  // layer by fixed priority: StockForm (same effect as its Cancel), then the
+  // delete-confirm (same as its Cancel), then Manage Stocks itself. Outside
+  // the Manage Stocks flow the card-opened dialogs and + Add stock keep
+  // their existing behavior (no Escape handling). StockForm.tsx and the
+  // delete-confirm markup are untouched.
+  useEffect(() => {
+    if (!manageOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return;
+      if (formOpen) {
+        setFormOpen(false);
+        setEditing(null);
+      } else if (pendingDelete) {
+        setPendingDelete(null);
+      } else {
+        setManageOpen(false);
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [manageOpen, formOpen, pendingDelete]);
+
   async function handleSave(data: Omit<Stock, 'id'>) {
     if (editing) {
       await updateStock({ id: editing.id as Id<'stocks'>, ...data });
