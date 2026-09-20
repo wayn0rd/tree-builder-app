@@ -3,12 +3,14 @@
 // Sector Watchlist — Cycle-2 spec .loopzai/spec.md:
 // D2 (login is the front door), U1–U3 (sign-in screen, not-invited wall,
 // signed-in header), D11 (Cycle-1 UX parity on Convex storage), F2–F4.
+// Cycle 3: "Manage Stocks" header button + modal (U1/U2/U4, D6, D9, D10).
 
 import { useAuthActions } from '@convex-dev/auth/react';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../convex/_generated/api';
 import type { Id } from '../convex/_generated/dataModel';
+import ManageStocksModal from '../components/ManageStocksModal';
 import NotInvitedWall from '../components/NotInvitedWall';
 import SignInScreen from '../components/SignInScreen';
 import SharePanel from '../components/SharePanel';
@@ -55,6 +57,7 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
   const [editing, setEditing] = useState<Stock | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Stock | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const didInitQuotes = useRef(false);
 
   // null = server list still loading (R5: no flash of empty-state).
@@ -148,6 +151,14 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
               + Add stock
             </button>
             <button
+              data-testid="manage-stocks-button"
+              type="button"
+              onClick={() => setManageOpen(true)}
+              className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Manage Stocks
+            </button>
+            <button
               data-testid="share-button"
               type="button"
               onClick={() => setShareOpen(true)}
@@ -178,6 +189,21 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
         />
 
         {shareOpen && <SharePanel onClose={() => setShareOpen(false)} />}
+
+        {/* Cycle 3 U2/U4: rendered before the child dialogs so they stack
+            above it; Edit/Delete reuse the exact same dashboard state the
+            card controls drive (D6). manageOpen is untouched by either. */}
+        {manageOpen && (
+          <ManageStocksModal
+            stocks={stocks}
+            onEdit={(stock) => {
+              setEditing(stock);
+              setFormOpen(true);
+            }}
+            onDelete={(stock) => setPendingDelete(stock)}
+            onClose={() => setManageOpen(false)}
+          />
+        )}
 
         {formOpen && (
           <StockForm
