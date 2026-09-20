@@ -38,8 +38,8 @@ Test-harness repair per spec-amendments.md (human-authorized amendment #1): in t
 timestamp: 2026-09-20T21:08:00Z
 phase: execution
 cycle: 3
-status: in_progress
-commitSha: null
-filesTouched: []
+status: committed
+commitSha: "5ab1cc432989634aebb37d3fa97be049f55e76d2"
+filesTouched: [".loopzai/execution-log.md", "tests/cycle3-scoped.spec.ts"]
 ```
 Test-harness repair per spec-amendments.md (human-authorized amendment #2): in tests/cycle3-scoped.spec.ts V2 insert the minimum wait for the canonical signed-in dashboard signal (`manage-stocks-button` visible) between the test-signin submit click and the existing page.reload(); the (a)-(c) D10 behavioral assertions and all product code are untouched.
