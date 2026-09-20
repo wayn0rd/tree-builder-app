@@ -1,133 +1,131 @@
 <!-- ideation.md — Ideation phase output; durable input to the Specification phase. -->
 
-# Tree Builder App (Sector Watchlist) — Cycle 2 Ideation
+# Sector Watchlist — Cycle 3 Ideation
 
-**Cycle:** 2
-**Status:** FROZEN — ready for Specification
-**Date frozen:** 2026-08-24
+**Cycle:** 3
+**Status:** FROZEN — awaiting the `ideation_approval` hard gate
+**Date frozen:** 2026-09-20
+**Author:** Trixie (conversation with Wayne)
+**Input for:** the Cycle-3 Specification
 
 ---
 
 ## 1. Refined concept
 
-Cycle 2 turns the Cycle-1 **Sector Watchlist** from a single-browser,
-localStorage-only toy into a **multi-user, invite-only, cloud-persisted web
-app** with per-user watchlists and shareable view-only links.
+Editing and deleting a stock, and changing its tags, **already work** — each
+sector-card row carries a ✎ (edit) and  (delete) control that open the existing
+`StockForm` modal and the existing delete-confirm dialog. But those controls are
+tiny, unlabeled, low-contrast glyphs at the row's right edge, and in practice the
+owner cannot find them.
 
-**What is being built:** the existing single-page Sector Watchlist
-(tickers grouped into freeform tag-based sector cards, live prices + 24h %
-change from Yahoo via the existing `/api/stock` route) gains three
-capabilities:
+Cycle 3 adds **one obvious, centralized surface** for managing the watchlist: a
+header button **"Manage Stocks"** that opens a **modal listing every stock**
+(Ticker · Name · Tags · Edit/Delete), sorted by ticker. Edit and Delete **reuse
+the existing `StockForm` modal and the existing delete-confirm path verbatim** —
+no new editing logic, no new deletion logic, no new mutation path.
 
-### A. Cloud persistence (Convex)
-- All watchlist data (a user's stocks: ticker, company name, tags) moves
-  from browser `localStorage` to a **Convex** backend.
-- Data is durable across browsers, machines, and sessions.
-- The Cycle-1 visual design, tag-filtering UX, `?tags=` shareable filter
-  URLs, and live-quote behavior are **preserved unchanged** — only the
-  storage layer and access model change.
+The model is Mission Control's stock editor **pattern** (a list with per-row
+edit/delete), not its columns: this app has ticker, name and tags only.
 
-### B. Google login + invite-only access control
-- **Google OAuth** sign-in (via Convex Auth). No passwords, no magic links.
-- **Login is the front door.** There is NO anonymous/local mode anymore —
-  an unauthenticated visitor to the app root sees only a sign-in screen.
-- **Invite-only whitelist:** a table of allowed email addresses. A user who
-  authenticates with Google but is NOT on the whitelist sees a polite
-  "you're not on the invite list" wall and cannot use the app.
-- **Admin account:** `trixiematic415@gmail.com` is the admin. It is
-  auto-promoted to admin on its first login and is implicitly whitelisted
-  (no bootstrap chicken-and-egg).
-- **Admin UI:** the admin can view the whitelist and add/remove allowed
-  emails. Standard whitelisted user to seed: `waynehoy@gmail.com`.
-- **Per-user data:** each whitelisted user has their OWN private
-  stocks/tags. Users cannot see each other's watchlists.
+## 2. What is being built
 
-### C. Shareable view-only links
-- Any user can generate a **tokenized share link** for their whole
-  watchlist (e.g. `/shared/<random-unguessable-token>`).
-- **Whole-watchlist scope** (not per-sector — that is a later cycle).
-- Links are **revocable**; a user may have **multiple** active links.
-- Opening a share link requires **no account/login**. The viewer sees the
-  same visual page as the owner (sector cards, colors, prices, % change,
-  last-refreshed timestamp, and a working manual refresh button) but with
-  **all edit/add/delete controls removed** — strictly read-only.
+1. A header button labeled **"Manage Stocks"** (`data-testid="manage-stocks-button"`),
+   placed with the other owner-dashboard header actions (`+ Add stock`, `Share`,
+   `Sign out`).
+2. A **modal** (`data-testid="manage-stocks-modal"`), titled **"Manage Stocks"**,
+   listing **all** of the signed-in user's stocks as rows, **sorted by ticker
+   ascending (case-insensitive)**.
+3. Each **row** (`data-testid="manage-stocks-row"`, `data-ticker="<TICKER>"`)
+   shows: **TICKER** · Company name · tag chips · **Edit** · **Delete**.
+4. **Edit** (`data-testid="manage-stocks-edit"`) opens the existing `StockForm`
+   pre-filled (ticker / name / tags); saving goes through the existing
+   `stocks.update`.
+5. **Delete** (`data-testid="manage-stocks-delete"`) opens the existing
+   delete-confirm dialog; confirming goes through the existing `stocks.remove`.
+6. The per-card ✎ /  controls **remain unchanged** (retained by decision D5).
 
-**Who it is for:** Wayne (primary, admin) plus a small hand-picked set of
-invited individuals he whitelists. It is explicitly NOT a public
-sign-up product in this cycle.
+## 3. Decisions (commitments — a veto can be aimed at its number)
 
-**What "working" means (concrete):**
-- Wayne can sign in with Google as the admin, rebuild his 5-sector /
-  22-stock watchlist (from `.loopzai/watchlist-seed.md`), and have it
-  persist across browsers/machines.
-- A whitelisted friend can sign in with their own Google account and build
-  their own separate watchlist.
-- A non-whitelisted Google account gets the polite wall, not data.
-- Wayne can create a share link, open it in an incognito window (no login),
-  and see his live-priced watchlist read-only; revoking the link makes it
-  stop working.
-- The app is deployable to / already deployed at
-  `https://www.sectorwatchlist.com` (Vercel) with these features live.
+- **D1 — It is a modal, not a route.** No new page, no `/stocks` URL.
+- **D2 — The button is labeled exactly "Manage Stocks"** and appears only on the
+  owner dashboard. It must never appear on `/shared/<token>`, which keeps zero
+  mutating controls.
+- **D3 — Row columns are Ticker · Name · Tags · actions.** No shares, platform,
+  equity or sector columns — this app has no such data.
+- **D4 — Rows are sorted by ticker, ascending, case-insensitive.** No user-facing
+  sort control, no search, no filter, no pagination.
+- **D5 — Per-card ✎ / 🗑 are kept.** The modal is purely additive; nothing on the
+  sector cards is removed or relocated.
+- **D6 — Reuse over reimplementation.** Edit opens the existing `StockForm`;
+  Delete opens the existing confirm dialog. No new mutation path, no new
+  validation, no new Convex function, no data-model change.
+- **D7 — No header count.** The button and modal header read **"Manage Stocks"**
+  only; no stock count is shown this cycle.
+- **D8 — Empty-state copy is exactly "No stocks yet."** and the list area is
+  empty. **No call-to-action** is added from the Manage Stocks empty state;
+  existing add-stock behavior stays where it already lives (the `+ Add stock`
+  button, and the board's own empty-state card).
+- **D9 — Dismissal & stacking.** The modal closes via its ✕ close button
+  (`data-testid="manage-stocks-close"`), a backdrop click, or `Escape`. When Edit
+  or Delete is opened from Manage Stocks:
+  - the Manage Stocks modal **remains open underneath**;
+  - the reused child dialog (`StockForm` / delete-confirm) appears **above** it
+    (Manage Stocks sits at a lower z-index, e.g. `z-30`, than the reused dialogs
+    at `z-40`);
+  - closing the child **returns the user to the still-open Manage Stocks modal**;
+  - **Escape and backdrop clicks close only the topmost active dialog** —
+    opening or closing the child must never close the underlying Manage Stocks
+    modal.
 
----
+## 4. Explicit non-goals (scope fence)
 
-## 2. Constraints surfaced
+- No change to the data model, Convex tables, or Convex functions.
+- No search, pagination, or responsive-table redesign.
+- No bulk actions, multi-select, undo, or reordering.
+- No new accessibility architecture (the new controls carry `aria-label`/`title`
+  consistent with the existing per-card controls; nothing beyond that).
+- No editing from the shared page; no collaborative editing.
+- No new quote behavior; no polling.
+- No touching the per-card icons or the existing add/edit/delete flows.
+- No re-freezing or weakening of any Cycle-2 frozen test.
 
-- **Stack (fixed):** Next.js 14 App Router + React 18 + TypeScript +
-  Tailwind (existing repo). Add **Convex** (prod deployment already
-  provisioned: `https://combative-minnow-928.convex.cloud`) and **Convex
-  Auth** for Google OAuth. Reuse the existing `/api/stock` Yahoo quote
-  route as-is.
-- **Deployment (already done, OUTSIDE the loop):** Vercel project
-  `tree-builder-app` is connected to the GitHub repo with custom domain
-  `www.sectorwatchlist.com`, auto-deploys from `main`, and has
-  `NEXT_PUBLIC_CONVEX_URL` set (Production/Preview/Development). The loop
-  does NOT do Vercel setup; it builds code that deploys cleanly onto it.
-- **Google OAuth client:** must be created in Google Cloud Console during
-  Execution (the exact Convex Auth callback URL is only known once the auth
-  code exists). Client ID/Secret are stored in the Convex dashboard as env
-  vars, NEVER in the repo or Vercel.
-- **No ownership/portfolio data:** still no shares/equity/position-size
-  fields (so a shared link reveals nothing about position sizes).
-- **No auto-refresh:** prices load on page-open + manual refresh button
-  only (Cycle-1 decision, unchanged).
-- **Data seeding:** Wayne's original watchlist was lost with localStorage;
-  there is nothing to migrate. His 22-stock / 5-sector map is preserved in
-  `.loopzai/watchlist-seed.md` and will be re-entered manually post-launch
-  under the admin account. The spec does NOT need a data-migration path.
-- **Privacy boundary:** an invitee's watchlist is private to them; the
-  admin manages the whitelist but the spec should be explicit about whether
-  the admin can/cannot browse other users' watchlist contents (default:
-  admin manages whitelist only, not a super-reader of others' data —
-  confirm in spec).
-- **Cycle-1 UX parity:** tag entry (Enter-to-commit chips, commas
-  rejected), zero-change rendered `0.00%` unsigned, `last-refreshed` with
-  24h time + milliseconds, unknown `?tags=` stays in URL but matches no
-  cards — all preserved.
+## 5. Test hooks to add (additive only)
 
-## 3. Directions rejected, and why
+`manage-stocks-button`, `manage-stocks-modal`, `manage-stocks-row`
+(with `data-ticker`), `manage-stocks-edit`, `manage-stocks-delete`,
+`manage-stocks-close`, `manage-stocks-empty`.
 
-- **localStorage / keep it client-only** — rejected: data evaporates across
-  browsers/machines (this is literally the bug that motivated Cycle 2).
-- **Public sign-up (anyone with a Google account can join)** — rejected for
-  now: Wayne wants a curated, invite-only group, not an open product.
-  (Revisit in a later cycle if sharing grows.)
-- **Per-sector share links** — rejected for Cycle 2 (scope control): share
-  links are whole-watchlist only. Per-sector sharing is a future cycle.
-- **Single global shared watchlist (no per-user data)** — rejected: each
-  invitee builds their own watchlist; a shared global list would mix
-  everyone's tickers.
-- **Magic-link / email-password auth** — rejected: Google OAuth is the
-  desired UX (Wayne's friends all have Google accounts; no password
-  management).
-- **Public "toggle" share (one stable profile URL)** — rejected in favor of
-  tokenized, revocable, multi-link sharing (better hygiene: can kill a link
-  without changing anything else).
-- **Doing Vercel deployment as part of the loop** — rejected: deployment
-  infra was set up outside the loop on 2026-08-24 and is treated as a
-  fixed given.
+Existing hooks (`edit-stock`, `delete-stock`, `confirm-delete`, `stock-form`,
+`stock-form-save`, `empty-state`) are **preserved unchanged**.
 
----
+## 6. Human-verifiable acceptance
 
-*Full conversation context lives in the Cycle-2 ideation session; this file
-is the frozen hand-off to Specification.*
+- Click **Manage Stocks** → the modal opens listing every stock, ticker-sorted.
+- **Edit** a stock's name and tags → Save → both the modal row **and** the sector
+  cards reflect the change.
+- **Delete** a stock → confirm → it disappears from the modal **and** the board.
+- Per-card ✎ / 🗑 still work exactly as before.
+- The modal is absent on a `/shared/<token>` page.
+- With Edit open over the modal, closing Edit returns to the still-open modal,
+  and pressing `Escape` closes only the topmost dialog.
+
+## 7. Risks / assumptions
+
+- **R1 — Frozen-test compatibility.** Cycle 2's plan (T-E6) exercises
+  `edit-stock` / `delete-stock` / `confirm-delete`; all are preserved because the
+  card icons are kept and the same components are reused. Verification may **add**
+  checks for the new surface but must not weaken existing ones.
+- **R2 — Reactive updates.** Convex queries are reactive, so edits/deletes made
+  through the reused components should reflect in the still-open modal list
+  without a manual refresh. To be confirmed at verification.
+- **R3 — z-index stacking.** The Manage Stocks modal must sit *below* the reused
+  child dialogs so both render correctly; verified visually.
+- **A1 — Assumption:** a simple ticker-sorted flat list is sufficient for a
+  watchlist of this size (no search/pagination). *Wrong if* a user maintains a
+  list large enough that a ticker cannot be found by scrolling.
+
+## 8. Open product decisions
+
+**None.** The four previously-open details (header count, empty-state copy,
+empty-state CTA, stacked-dialog behavior) are resolved as D7, D8 and D9 above.
+This document is internally consistent and ready to freeze.
