@@ -27,8 +27,19 @@ M2 dismissal + docs: add the manageOpen-gated document keydown Escape listener t
 timestamp: 2026-09-20T21:05:00Z
 phase: execution
 cycle: 3
+status: committed
+commitSha: "5fc93b15d13b663f3cac2c4d444ed6e2dac5645e"
+filesTouched: [".loopzai/execution-log.md", "tests/cycle3-e2e.spec.ts"]
+```
+Test-harness repair per spec-amendments.md (human-authorized amendment #1): in tests/cycle3-e2e.spec.ts T-E9 replace the two non-retrying `count()` checks right after goto(sharedPath) with the retrying `expect(locator).not.toHaveCount(0)` so shared-page presence retries within the frozen 15 s expect timeout; no product code changed and the U7/D2 absence assertions are untouched.
+
+### entry-0004
+```yaml
+timestamp: 2026-09-20T21:08:00Z
+phase: execution
+cycle: 3
 status: in_progress
 commitSha: null
 filesTouched: []
 ```
-Test-harness repair per spec-amendments.md (human-authorized amendment #1): in tests/cycle3-e2e.spec.ts T-E9 replace the two non-retrying `count()` checks right after goto(sharedPath) with the retrying `expect(locator).not.toHaveCount(0)` so shared-page presence retries within the frozen 15 s expect timeout; no product code changed and the U7/D2 absence assertions are untouched.
+Test-harness repair per spec-amendments.md (human-authorized amendment #2): in tests/cycle3-scoped.spec.ts V2 insert the minimum wait for the canonical signed-in dashboard signal (`manage-stocks-button` visible) between the test-signin submit click and the existing page.reload(); the (a)-(c) D10 behavioral assertions and all product code are untouched.

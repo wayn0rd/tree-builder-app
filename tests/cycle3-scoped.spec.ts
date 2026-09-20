@@ -154,6 +154,9 @@ test.describe('V (cycle 3): cycle-scoped evidence', () => {
     await page.getByTestId('test-signin-email').fill(ADMIN);
     await page.getByTestId('test-signin-secret').fill(SECRET);
     await page.getByTestId('test-signin-submit').click();
+    // Amended (spec-amendments.md, cycle 3): wait for the canonical signed-in
+    // dashboard signal so the reload cannot race the test-login session persist.
+    await expect(page.getByTestId('manage-stocks-button')).toBeVisible();
     await page.reload();
 
     const modal = page.getByTestId('manage-stocks-modal');
