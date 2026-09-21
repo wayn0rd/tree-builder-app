@@ -21,7 +21,11 @@ maintained without hunting through the cards.
   (invite-only: an admin-managed email whitelist gates every function
   server-side)
 - Quotes proxied from Yahoo Finance via `/api/stock` (no key, no auth —
-  quotes are public data and the anonymous shared page depends on it)
+  quotes are public data and the anonymous shared page depends on it).
+  In the **Add stock** form, leaving the ticker field auto-fills the
+  Company name from that same lookup (`AAPL` → Apple Inc.; `BRK.B` is
+  retried as `BRK-B`); a name you typed yourself is never overwritten,
+  and a lookup that misses changes nothing.
 
 ## Getting started (local dev)
 
