@@ -5,8 +5,9 @@
 // counted as a candidate tag on save (see .loopzai/assumptions.md
 // assumption-0001). Commas never split — they are a validation error.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Stock, validateStock } from '../lib/watchlist';
+import { fetchCompanyName } from '../lib/quotes';
 
 interface StockFormProps {
   /** Stock being edited, or null when adding. */
@@ -26,10 +27,46 @@ export default function StockForm({
   onClose,
 }: StockFormProps) {
   const [ticker, setTicker] = useState(initial?.ticker ?? '');
-  const [name, setName] = useState(initial?.name ?? '');
+  // Cycle 1 autofill, spec D2: the name and its provenance are one fact —
+  // `fromAutofill` is true only while the value is the untouched output of
+  // the last lookup. Any user edit makes it human-authored for the life of
+  // the form.
+  const [nameState, setNameState] = useState<{
+    value: string;
+    fromAutofill: boolean;
+  }>({ value: initial?.name ?? '', fromAutofill: false });
+  const name = nameState.value;
+  // D7: the stale-response guard reads the ticker field's *current* value at
+  // write time, so it is mirrored in a ref the async handler can read.
+  const tickerRef = useRef(ticker);
+  const mountedRef = useRef(false);
   const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Cycle 1 autofill (spec D1, D3, D5–D9): on blur of the ticker field in
+  // Add mode, look the ticker up and fill the Company name when allowed.
+  async function handleTickerBlur(raw: string) {
+    if (initial) return; // D5: Add only — Edit never looks up.
+    const requested = raw.trim().toUpperCase(); // D9: normalized for the request only.
+    if (!requested) return; // D8: blank ticker → no request.
+    const found = await fetchCompanyName(requested); // D3: dot-class retry inside.
+    if (!mountedRef.current) return;
+    if (found === null) return; // D6: a miss never writes (and shows nothing, D10).
+    if (tickerRef.current.trim().toUpperCase() !== requested) return; // D7: stale response.
+    setNameState((prev) =>
+      prev.value.trim() === '' || prev.fromAutofill
+        ? { value: found, fromAutofill: true } // D2 write rule
+        : prev
+    );
+  }
 
   const suggestions = Array.from(
     new Set(stocks.flatMap((s) => s.tags))
@@ -95,7 +132,11 @@ export default function StockForm({
           data-testid="stock-form-ticker"
           type="text"
           value={ticker}
-          onChange={(e) => setTicker(e.target.value)}
+          onChange={(e) => {
+            tickerRef.current = e.target.value;
+            setTicker(e.target.value);
+          }}
+          onBlur={(e) => void handleTickerBlur(e.currentTarget.value)}
           placeholder="e.g. AAPL"
           autoFocus
           className="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none"
@@ -108,7 +149,9 @@ export default function StockForm({
           data-testid="stock-form-name"
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) =>
+            setNameState({ value: e.target.value, fromAutofill: false })
+          }
           placeholder="e.g. Apple Inc."
           className="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         />
