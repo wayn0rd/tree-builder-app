@@ -1,0 +1,61 @@
+{
+  "artifactVersion": 1,
+  "gates": [
+    {
+      "id": "harness-sanity",
+      "kind": "exit-code",
+      "cwd": "",
+      "command": "node",
+      "args": [
+        "scripts/harness-sanity.mjs"
+      ],
+      "timeoutMs": 120000
+    },
+    {
+      "id": "root-tests",
+      "kind": "exit-code",
+      "cwd": "",
+      "command": "node",
+      "args": [
+        "scripts/run-src-tests.mjs"
+      ],
+      "timeoutMs": 600000
+    },
+    {
+      "id": "root-typecheck",
+      "kind": "exit-code",
+      "cwd": "",
+      "command": "npx",
+      "args": [
+        "tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.web.json"
+      ],
+      "timeoutMs": 300000
+    },
+    {
+      "id": "engine-typecheck",
+      "kind": "exit-code",
+      "cwd": "engine",
+      "command": "npx",
+      "args": [
+        "tsc",
+        "--noEmit"
+      ],
+      "timeoutMs": 300000
+    },
+    {
+      "id": "engine-vitest",
+      "kind": "vitest",
+      "cwd": "engine",
+      "command": "npx",
+      "args": [
+        "vitest",
+        "run"
+      ],
+      "timeoutMs": 1800000,
+      "minCollectedTests": 3105
+    }
+  ]
+}
