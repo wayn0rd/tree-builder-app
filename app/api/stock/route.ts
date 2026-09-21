@@ -62,12 +62,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // D4: company name for the Add-form autofill — longName, else shortName,
+    // else null (key always present on 200; error bodies never carry it).
+    const name: string | null =
+      typeof meta?.longName === 'string' && meta.longName !== ''
+        ? meta.longName
+        : typeof meta?.shortName === 'string' && meta.shortName !== ''
+          ? meta.shortName
+          : null;
+
     return NextResponse.json({
       ticker: meta.symbol,
       price: currentPrice,
       previousClose: previousClose,
       changePercent: changePercent,
-      historicalPrice: historicalPrice
+      historicalPrice: historicalPrice,
+      name: name
     });
   } catch (error) {
     console.error('Yahoo Finance fetch error:', error);
