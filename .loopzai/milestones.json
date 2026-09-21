@@ -5,22 +5,22 @@
     {
       "id": "M1",
       "title": "`/api/stock` 200 responses carry `name` (longName → shortName → null); every error path unchanged",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M2",
       "title": "Add-form blur lookup: normalized ticker, blank-ticker guard, dot-class retry, silent degradation, Add-only",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M3",
       "title": "Company-name write rules: autofill provenance and stale-response guard",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M4",
       "title": "Existing Playwright suite green, new rows covering the criteria, README sentence",
-      "status": "pending"
+      "status": "active"
     }
   ]
 }
