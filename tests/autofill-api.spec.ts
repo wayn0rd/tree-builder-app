@@ -100,7 +100,7 @@ test.describe('AF-API: /api/stock name key (live Yahoo)', () => {
     // Route-handler harness, no network: call the route module directly
     // with global fetch replaced by a fixture server.
     const { GET } = await import('../app/api/stock/route');
-    const { NextRequest } = await import('next/server');
+    const { NextRequest } = await import('next/server.js');
 
     const realFetch = globalThis.fetch;
     const withMeta = (extraMeta: Record<string, unknown>) => ({
