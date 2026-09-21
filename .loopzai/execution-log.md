@@ -39,3 +39,16 @@ milestoneIds: ["M4"]
 completesMilestoneIds: ["M4"]
 ```
 Add the README autofill sentence (criterion 23, `Manage Stocks` literal kept) and record the regression result of `npx tsc --noEmit`, `npm run build` and the full existing Playwright suite on this tree (criteria 20–22); the new frozen rows for criteria 1–19/23 are authored by Verification per harness practice (assumption-0001), so this closes Execution's part of M4. Result on this tree: `npx tsc --noEmit` exit 0; `npm run build` exit 0 (routes /, /_not-found, /admin, /api/stock, /shared/[token]); `env -u NODE_ENV npm test` exit 0 — 48 passed, 2 skipped (cycle3-scoped V1, V2), 0 failed, 0 flaky; no previous-cycle file under tests/ modified; criteria 7–19 also exercised ad hoc with an uncommitted scratch Playwright script (15/15 passed).
+
+### entry-0004
+```yaml
+timestamp: 2026-09-21T20:29:00Z
+phase: execution
+cycle: 1
+status: in_progress
+commitSha: null
+filesTouched: []
+milestoneIds: ["M4"]
+completesMilestoneIds: ["M4"]
+```
+Close Execution's part of M4 with a linked checkpoint: the README autofill sentence (criterion 23, `Manage Stocks` literal kept) already landed in cdf0b5a, whose entry-0003 was abandoned only because its commitSha was never written back; this entry re-runs `npx tsc --noEmit`, `npm run build` and the full existing Playwright suite (`env -u NODE_ENV npm test`, no `LOOPZAI_CYCLE`) on the identical tree and records the results here (criteria 20–22); the new frozen rows for criteria 1–19/23 remain Verification's per assumption-0001, so no file under `tests/` is added or modified. Result on this tree (identical to cdf0b5a outside `.loopzai/`): `npx tsc --noEmit` exit 0; `npm run build` exit 0 (routes /, /_not-found, /admin, /api/stock, /shared/[token]); `env -u NODE_ENV npm test` exit 0 — 48 passed, 2 skipped (cycle3-scoped V1, V2), 0 failed, 0 flaky; `git diff --name-only f78266b HEAD -- tests/` empty.
