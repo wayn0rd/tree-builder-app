@@ -31,9 +31,10 @@ Add `fetchCompanyName` to lib/quotes.ts (one /api/stock request, dot-class `.`â†
 timestamp: 2026-09-21T17:05:00Z
 phase: execution
 cycle: 1
-status: in_progress
+status: abandoned
 commitSha: null
 filesTouched: []
+abandonedReason: no_linkage_mechanism
 milestoneIds: ["M4"]
 completesMilestoneIds: ["M4"]
 ```
