@@ -1,0 +1,21 @@
+{
+  "cycle": 2,
+  "createdAt": "2026-09-21T22:54:11.869Z",
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Pure `summarizeSector` helper in `lib/`: equal-weight mean over available rows, four exact direction counts, null-safe (never `NaN`)",
+      "status": "pending"
+    },
+    {
+      "id": "M2",
+      "title": "Sector card header renders the summary (row-rule formatting, neutral treatment, own test id and data attributes) on the owner board and the shared page",
+      "status": "pending"
+    },
+    {
+      "id": "M3",
+      "title": "Existing Playwright suite green, `tsc` and `build` exit 0, README sentence",
+      "status": "pending"
+    }
+  ]
+}
