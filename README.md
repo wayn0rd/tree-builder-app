@@ -2,7 +2,12 @@
 
 An invite-only, tag-driven stock watchlist. Tickers are grouped into
 freeform "sector" cards (tags you invent, like `Tech` or `AI Infra`),
-each showing live prices and daily % change — green up, red down. Tag
+each showing live prices and daily % change — green up, red down.
+Each sector card's header also carries a compact summary — the
+equal-weight mean of its rows' daily % change plus ▲ up / ▼ down
+counts (flat and n/a counts appear only when non-zero) — computed
+from the quotes already on the page, so the shared read-only view
+shows the same numbers. Tag
 chips filter the visible cards and mirror into the URL
 (`/?tags=Tech,Cloud`). Watchlists are private per user; read-only
 snapshots can be shared via tokenized links (`/shared/<token>`) that
