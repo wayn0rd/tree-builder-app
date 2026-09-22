@@ -8,8 +8,16 @@
 // to the dashboard, which reuses its existing StockForm / delete-confirm
 // state (D6). The overlay sits at z-30 so the reused child dialogs (z-40)
 // render above it; DOM order in the dashboard also places it before them.
+//
+// Cycle 3 (CSV export / import, .loopzai/spec.md D1–D3, D13, D15): a toolbar
+// row under the heading carries `Export CSV` (built in the browser from the
+// loaded stocks — no request, no write) and `Import CSV` (a button plus a
+// hidden file input). Neither adds a heading element nor the text
+// `Add stock`, so the frozen Manage Stocks rows keep their shape.
 
+import { useRef } from 'react';
 import { Stock } from '../lib/watchlist';
+import { EXPORT_FILENAME, serializeWatchlist } from '../lib/watchlistCsv';
 
 interface ManageStocksModalProps {
   stocks: Stock[];
@@ -30,6 +38,32 @@ export default function ManageStocksModal({
     const tb = b.ticker.toUpperCase();
     return ta < tb ? -1 : ta > tb ? 1 : 0;
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // D2 / D3: the export is the stocks already on the page, serialised by
+  // the pure codec (ticker-sorted, LF, no BOM) and handed to the browser as
+  // a Blob download. Nothing is requested and nothing is written.
+  function handleExport() {
+    const csv = serializeWatchlist(stocks);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = EXPORT_FILENAME;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  // D13: the file input is cleared after every choice so the same file can
+  // be chosen twice in a row. The import run itself is wired in M4.
+  function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+  }
 
   return (
     <div
@@ -55,6 +89,35 @@ export default function ManageStocksModal({
           >
             ✕
           </button>
+        </div>
+
+        {/* Cycle 3 D1 / D15: toolbar row — no heading element, no
+            `Add stock` text, no borrowed test id. */}
+        <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-2">
+          <button
+            data-testid="manage-stocks-export"
+            type="button"
+            onClick={handleExport}
+            className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Export CSV
+          </button>
+          <button
+            data-testid="manage-stocks-import"
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Import CSV
+          </button>
+          <input
+            ref={fileInputRef}
+            data-testid="manage-stocks-import-file"
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={handleFileChosen}
+          />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-2">
