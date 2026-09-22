@@ -57,10 +57,10 @@ Wire Import CSV end to end: the file input starts one identified preview run per
 timestamp: 2026-09-22T08:30:00Z
 phase: execution
 cycle: 3
-status: in_progress
-commitSha: null
-filesTouched: []
+status: committed
+commitSha: "0d66f5940765aae5f93454c7dc9ed2e2b12e1788"
+filesTouched: [".loopzai/execution-log.md", "README.md"]
 milestoneIds: ["M5"]
-completesMilestoneIds: []
+completesMilestoneIds: ["M5"]
 ```
-Add the README export / import sentence (every pinned literal kept) and run Execution's regression pass on the finished tree — `npx tsc --noEmit`, `npm run build` (route set unchanged), and the existing Playwright suite with `LOOPZAI_CYCLE` unset (expected 92 passed / 3 skipped) — recording the three results here, per spec criteria 22, 23, 25 and E2 (M5).
+Add the README export / import sentence (every pinned literal kept) and run Execution's regression pass on the finished tree — `npx tsc --noEmit`, `npm run build` (route set unchanged), and the existing Playwright suite with `LOOPZAI_CYCLE` unset (expected 92 passed / 3 skipped) — recording the three results here, per spec criteria 22, 23, 25 and E2 (M5). Results on the tree at 0d66f59 (all run with `env -u NODE_ENV`, `LOOPZAI_CYCLE` unset): `npx tsc --noEmit` exit 0; `npm run build` exit 0 with routes `/`, `/_not-found`, `/admin`, `/api/stock`, `/shared/[token]` (E2 unchanged); `npm test` exit 0 — 92 passed, 3 skipped (cycle3-scoped V1, V2; sector-summary-scoped SS-V-E1), 0 failed. Plan-choice notes for Verification: module names are `lib/watchlistCsv.ts`, `lib/watchlistImport.ts`, `components/ImportCsvPanel.tsx` with the plan's exported signatures (plus an extra `importingLabel(i, total)` helper); the panel's Cancel is offered in the file-level-error state; a delimiter-only file reads as `The file is empty.` (assumption-0001).
