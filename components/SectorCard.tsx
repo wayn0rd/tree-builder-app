@@ -5,6 +5,7 @@
 
 import { Stock } from '../lib/watchlist';
 import { Quote } from '../lib/quotes';
+import { summarizeSector } from '../lib/sectorSummary';
 
 export type Direction = 'up' | 'down' | 'flat' | 'unavailable';
 
@@ -71,6 +72,23 @@ export default function SectorCard({
     a.ticker < b.ticker ? -1 : a.ticker > b.ticker ? 1 : 0
   );
 
+  // Cycle 2 header summary (D9): same per-row expression the rows use, so
+  // a missing, failed or not-yet-fetched quote is `null` (D8) for both.
+  const summary = summarizeSector(
+    sorted.map((s) => {
+      const q = quotes[s.ticker];
+      return q ? q.changePercent : null;
+    })
+  );
+  // D3: text and direction from the unrounded mean via the row rules.
+  // D7: up/down always shown; flat and n/a only when non-zero. Built as one
+  // string so JSX whitespace handling cannot alter the spacing.
+  const summaryDirection = changeDirection(summary.mean);
+  const summaryText =
+    `${formatChange(summary.mean)} · ${summary.up}▲ ${summary.down}▼` +
+    (summary.flat > 0 ? ` ${summary.flat} flat` : '') +
+    (summary.unavailable > 0 ? ` ${summary.unavailable} n/a` : '');
+
   return (
     <section
       data-testid="sector-card"
@@ -82,9 +100,24 @@ export default function SectorCard({
         style={{ backgroundColor: tagColor(tag) }}
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide">{tag}</h2>
-        <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-medium">
-          {sorted.length} {sorted.length === 1 ? 'stock' : 'stocks'}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* D4/D10/D11: neutral white pill, own test id, no row id reused. */}
+          <span
+            data-testid="sector-summary"
+            data-direction={summaryDirection}
+            data-up={summary.up}
+            data-down={summary.down}
+            data-flat={summary.flat}
+            data-unavailable={summary.unavailable}
+            data-mean={summary.mean == null ? undefined : String(summary.mean)}
+            className="whitespace-nowrap rounded-full bg-white/25 px-2 py-0.5 text-xs font-medium tabular-nums"
+          >
+            {summaryText}
+          </span>
+          <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-medium">
+            {sorted.length} {sorted.length === 1 ? 'stock' : 'stocks'}
+          </span>
+        </div>
       </header>
       <ul className="divide-y divide-gray-100">
         {sorted.map((stock) => {
