@@ -1,36 +1,57 @@
 <!-- verification.md — verification results for the current cycle. -->
 
-# Cycle 3 — Verification attempt 1 of 3
+# Cycle 3 — Verification attempt 2 of 3
 
-Tree graded: Execution head `0d66f59` (+ loopzai bookkeeping `0fc9aeb`) plus the
-Verification freeze commit **V0 `fb894c2`** (four new test files, derived from
-`spec.md` + `spec-amendments.md` (empty) with the plan's test plan as the row
-source, written and committed **before** reading `execution-log.md` or the
-implementation diff). Every command below ran in the foreground with
-`env -u NODE_ENV` and `LOOPZAI_CYCLE` unset. Logs: `/tmp/cycle3-a1-build.log`,
-`/tmp/cycle3-a1-suite.log`.
+Tree graded: HEAD `1768334` = Execution head `0d66f59` (product files
+byte-identical — `git diff --stat 0d66f59 HEAD -- . ':!.loopzai' ':!tests'` is
+empty) + the frozen test commit **V0 `fb894c2`** + the human-authorized
+amendment commit **`8d10589`** (rows WC-S-24a / WC-S-24a2 only). Every command
+below ran in the foreground with `env -u NODE_ENV` and `LOOPZAI_CYCLE` unset.
+Logs: `/tmp/cycle3-a2-build.log`, `/tmp/cycle3-a2-suite.log`, `/tmp/cycle3-a2-e1.log`.
+The coordinator's own gate run `c3-a2-20260922T162847Z-8ec4547bceef` (tsc 0,
+build 0, tests 0 — 128 passed / 4 skipped) was read but not relied on; each
+gate was re-run here.
+
+## Frozen-test rules — attempt 2 read-back
+
+Attempt 2 runs the frozen tests from git unchanged. The frozen set changed
+between attempts by exactly one commit, `8d10589`, and I audited it before
+grading rather than trusting its message:
+
+| check | observed |
+|---|---|
+| Authority | `.loopzai/spec-amendments.md` (blocking-pause answer, 2026-09-22T08:44:44Z): "Authorize the narrow amendment to frozen rows WC-S-24a and WC-S-24a2 … inspect comment-stripped / executable source … Do not broaden … Do not change product code" |
+| Files touched by `8d10589` | `tests/watchlist-csv-static.spec.ts` (+107/−2) and `.loopzai/execution-log.md` — nothing else |
+| Scope inside the file | only `assertPureLib` (now `stripComments` + `assertStripperWorks` + `assertPureLib`); `assertPureLib` is called **only** by WC-S-24a (line 165) and WC-S-24a2 (line 172); WC-S-24b and WC-S-25 are textually unchanged |
+| Protected behaviour preserved | on the comment-stripped source the row still asserts: no `'use client'` / `"use client"` directive, no `from 'react'`, no `from 'next'`, no `from 'convex'`, no `from '../convex'`, no `fetch(`, no `XMLHttpRequest`, no `process.env`, no `useQuery`/`useMutation`, no `require(`, every import relative `./`; plus the export-name checks. String / template / regex literals are kept verbatim by the stripper, and an in-row self-check (`assertStripperWorks`) fails closed if the stripper ever removes executable text |
+| Narrowing beyond the amendment? | one: the directive check went from `/use client/` (any text) to `/['"]use client['"]/` (a string literal). A directive *is* a string literal, and the amendment's contract is "must not actually contain or use a `'use client'` directive" — so this is the amendment's intent, not a weakening |
+| Product code changed to satisfy the row? | **no** — `lib/watchlistCsv.ts` and `lib/watchlistImport.ts` are identical to `0d66f59`; the header comments that tripped attempt 1 are still there (raw `grep -c "'use client'" lib/watchlistImport.ts` = 1, in the line-5 comment) |
+| Other frozen files | `tests/watchlist-csv-unit`, `-e2e`, `-scoped` identical to `fb894c2`; every prior-cycle file identical to its frozen commit (step 5) |
+
+Verdict on the amendment: within its authorization; no further additions were
+needed and none were made.
 
 ## Prerequisites (step 0) — read back, all satisfied
 
 | check | observed |
 |---|---|
 | `.loopzai/verification-gates.json` | `npx tsc --noEmit`, `npm run build`, `npm test` — unchanged |
-| `.env.local` deployment | `CONVEX_DEPLOYMENT=dev:combative-minnow-928`; zero matches for `frugal-anaconda-225` |
+| `.env.local` deployment | `CONVEX_DEPLOYMENT=dev:combative-minnow-928`; 0 matches for `frugal-anaconda-225` |
 | `npx convex env get E2E_TEST_SECRET` | `loopzai-e2e-dev-secret` |
 | `node_modules/@playwright/test`, `node_modules/next` | present |
-| `ss -ltnp \| grep :3000` before build / suite | free (Playwright started its own `next dev`) |
-| `git status --porcelain -- . ':!.loopzai'` before grading | empty after V0 |
+| `ss -ltnp \| grep :3000` before build, before suite, before E1 | free each time (Playwright started and stopped its own `next dev`) |
+| `git status --porcelain -- . ':!.loopzai'` | empty before and after grading |
 | `git diff --name-only 8868bce HEAD -- tests/` minus `tests/watchlist-csv-*` | empty |
-| Shell had `NODE_ENV=production` | every command run with `env -u NODE_ENV` |
+| Shell `NODE_ENV=production`, `LOOPZAI_CYCLE` unset | every command run with `env -u NODE_ENV` |
+| Outbound `query1.finance.yahoo.com` | a bare `curl` got 429, but all 14 live-API rows (`T-A1…A7`, `AF-API-1…5c`) passed first try in the suite |
 
 ## Step 1 — Typecheck (criterion 23a)
 
-`env -u NODE_ENV npx tsc --noEmit` → **exit 0** (after V0; covers codec, planner,
-modal, panel, page and the four new test files). **PASS**
+`env -u NODE_ENV npx tsc --noEmit` → **exit 0**. **PASS**
 
 ## Step 2 — Build (criterion 23b, E2)
 
-`env -u NODE_ENV npm run build > /tmp/cycle3-a1-build.log 2>&1` → **exit 0**.
+`env -u NODE_ENV npm run build > /tmp/cycle3-a2-build.log 2>&1` → **exit 0**.
 Route block:
 
 ```
@@ -44,18 +65,18 @@ Route (app)                              Size     First Load JS
 
 E2 route set `/`, `/_not-found`, `/admin`, `/api/stock`, `/shared/[token]` — exact. **PASS**
 
-## Step 3 — Full suite (criteria 1–22, 24, 25)
+## Step 3 — Full frozen suite (criteria 1–22, 24, 25)
 
-`env -u NODE_ENV -u LOOPZAI_CYCLE npm test > /tmp/cycle3-a1-suite.log 2>&1` →
-**exit 1** — `126 passed, 4 skipped, 2 failed (4.1m)`, 0 flaky.
+`env -u NODE_ENV -u LOOPZAI_CYCLE npm test > /tmp/cycle3-a2-suite.log 2>&1` →
+**exit 0** — `128 passed, 4 skipped, 0 failed (4.1m)`, 0 flaky.
 
 Skipped (all expected, all gated rows): `cycle3-scoped` V1, V2;
 `sector-summary-scoped` SS-V-E1; `watchlist-csv-scoped` WC-V-E1.
 
-Every prior-cycle row (`api`, `autofill-*`, `cycle2-*`, `cycle3-*`,
-`sector-summary-*`: rows 1–95 of the reporter) **passed** — criterion 22 met.
+Reporter rows 1–95 (every prior-cycle row: `api`, `autofill-*`, `cycle2-*`,
+`cycle3-*`, `sector-summary-*`) all `✓` or expected `-` — **criterion 22 met**.
 
-### New rows — `tests/watchlist-csv-unit.spec.ts` (16 rows)
+### `tests/watchlist-csv-unit.spec.ts` (16 rows, frozen, unchanged)
 
 | row | criterion | result |
 |---|---|---|
@@ -72,47 +93,56 @@ Every prior-cycle row (`api`, `autofill-*`, `cycle2-*`, `cycle3-*`,
 | WC-U-16s | D16 strings | ✓ |
 | WC-U-21u | 21 (validator leg) | ✓ |
 
-### New rows — `tests/watchlist-csv-e2e.spec.ts` (16 rows, one serial describe, stubbed `/api/stock`)
+### `tests/watchlist-csv-e2e.spec.ts` (16 rows, frozen, unchanged; serial; stubbed `/api/stock`)
 
-| row | criteria | result | notes |
+| row | criteria | result | observed |
 |---|---|---|---|
-| WC-E-20e/1e | 20, 1 (empty) | ✓ | `No stocks yet.`, both buttons, bytes `ticker,name,tags\n` |
-| WC-E-20/1 | 20, 1 | ✓ | exact fixture bytes, first bytes `74 69 63`, no CR, 0 requests, list unchanged |
-| WC-E-7/8/19a | 7, 8, 19 | ✓ | `Add 2 · Skip 2 · Reject 2`, six rows exact, lookups = {NVDA, NONAME}, one `h1–h3` |
+| WC-E-20e/1e | 20, 1 (empty) | ✓ | 1.9 s |
+| WC-E-20/1 | 20, 1 | ✓ | fixture bytes exact, no BOM / CR, 0 requests, list unchanged |
+| WC-E-7/8/19a | 7, 8, 19 | ✓ | `Add 2 · Skip 2 · Reject 2`, six rows, lookups = {NVDA, NONAME}, one heading |
 | WC-E-9 | 9 | ✓ | |
 | WC-E-16 | 16 | ✓ | `Add 0 · Skip 0 · Reject 1`, only Cancel, 0 requests |
-| WC-E-15c | 15 contrast | ✓ | `duplicate of row 1` with bad tags |
-| WC-E-13 | 13, 4 | ✓ | header-only + all five unreadable files show the exact error and no summary |
-| WC-E-17 | 17 | ✓ | Cancel / Escape / backdrop with NVDA delayed 6 s; waited ≥ 7 s from choice each time; no panel, no confirm anywhere, list unchanged (21.5 s) |
-| WC-E-18 | 18 | ✓ | Y's preview unchanged after X's late response; `NVDA` nowhere in panel; only NONAME written |
+| WC-E-15c | 15 contrast | ✓ | `duplicate of row 1` |
+| WC-E-13 | 13, 4 | ✓ | header-only + five unreadable files |
+| WC-E-17 | 17 | ✓ | Cancel / Escape / backdrop, NVDA delayed 6 s (21.6 s) |
+| WC-E-18 | 18 | ✓ | Y's preview unchanged after X's late result (7.4 s) |
 | WC-E-21s | 21 (server) | ✓ | `Tags may not contain commas.` |
-| WC-E-10/19b | 10, 19 | ✓ | report exact, 4 rows stored, cards `Chips`/`Misc`, exactly +2 requests {NONAME, NVDA}, none in the following 10 s, persists after reload |
+| WC-E-10/19b | 10, 19 | ✓ | report exact, 4 rows stored, cards, +2 requests then none for 10 s, persists (18.6 s) |
 | WC-E-11 | 11 | ✓ | `Add 0 · Skip 4 · Reject 2`, no confirm, 0 requests |
-| WC-E-14 | 14 | ✓ | export bytes with `"Foo, Inc.","A,B"`, re-import `Add 0 · Skip 3 · Reject 0` |
-| WC-E-12 | 12 | ✓ | `Added 1 · Skipped 0 · Rejected 0 · Failed 1`, row 1 `failed` `NVDA is already in the watchlist.`, only NONAME fetched |
-| WC-E-15 | 15 | ✓ | `Add 1 · Skip 0 · Reject 1`, `Import 1 stock`, 0 requests, stored `NVDA` "NVIDIA" [`Chips`] |
-| WC-E-20x | 20 | ✓ | no `manage-stocks-*` on `/shared/<token>`, the wall, `/admin` |
+| WC-E-14 | 14 | ✓ | `Add 0 · Skip 3 · Reject 0` |
+| WC-E-12 | 12 | ✓ | `Added 1 · Skipped 0 · Rejected 0 · Failed 1`, row 1 `failed` (8.3 s) |
+| WC-E-15 | 15 | ✓ | `Import 1 stock`, 0 requests, `NVDA` "NVIDIA" [`Chips`] |
+| WC-E-20x | 20 | ✓ | no `manage-stocks-*` on shared page / wall / `/admin` |
 
-### New rows — `tests/watchlist-csv-static.spec.ts` (4 rows)
+### `tests/watchlist-csv-static.spec.ts` (4 rows; 24a/24a2 amended per authorization)
 
-| row | criterion | result |
-|---|---|---|
-| WC-S-24a  `lib/watchlistCsv.ts` pure | 24 | **✘ FAIL** — see below |
-| WC-S-24a2 `lib/watchlistImport.ts` pure | 24 | **✘ FAIL** — see below |
-| WC-S-24b  writes only through `stocks.add`; `api.*` refs ⊆ {users.me, stocks.list/add/update/remove}; no `useAction`; `fetch(` targets only `/api/stock` | 24 | ✓ |
-| WC-S-25   README | 25 | ✓ |
+| row | criterion | attempt 1 | attempt 2 |
+|---|---|---|---|
+| WC-S-24a  `lib/watchlistCsv.ts` pure | 24 | ✘ (comment false positive) | **✓** |
+| WC-S-24a2 `lib/watchlistImport.ts` pure | 24 | ✘ (comment false positive) | **✓** |
+| WC-S-24b  writes only through `stocks.add` | 24 | ✓ | ✓ |
+| WC-S-25   README | 25 | ✓ | ✓ |
+
+Independent criterion-24 check, not via the amended rows: reading both lib
+files end to end — `lib/watchlistCsv.ts` has no `import` at all; `lib/watchlistImport.ts`
+imports only `./watchlist` and `import type … './watchlistCsv'`; neither has a
+directive, `process.env`, `fetch(`, `XMLHttpRequest` or `require(` outside its
+header comment (`sed -E 's#//.*$##' | grep -cE …` = 0 for both). The
+direct-import unit rows executing both modules under the Node runner are the
+executable proof of "importable outside React".
 
 ## Step 4 — Cycle-scoped evidence (E1)
 
-`LOOPZAI_EVIDENCE=watchlist-csv env -u NODE_ENV -u LOOPZAI_CYCLE npx playwright test tests/watchlist-csv-scoped.spec.ts` → **1 passed**.
+`LOOPZAI_EVIDENCE=watchlist-csv env -u NODE_ENV -u LOOPZAI_CYCLE npx playwright test tests/watchlist-csv-scoped.spec.ts` → **1 passed (3.9 s)**.
 
 `E1 CHANGED = ["README.md","app/page.tsx","components/ImportCsvPanel.tsx","components/ManageStocksModal.tsx","lib/watchlistCsv.ts","lib/watchlistImport.ts"]`
 
-Independent confirmation: `git diff --name-only 8868bce HEAD -- convex/ app/api/ app/shared/ app/admin/ package.json package-lock.json playwright.config.ts` → empty; `git diff --name-only 8868bce HEAD -- tests/ | grep -v '^tests/watchlist-csv-'` → empty; `depsOf(HEAD) == depsOf(BASE)`. **PASS**
+Independent confirmation: `git diff --name-only 8868bce HEAD -- convex/ app/api/ app/shared/ app/admin/ package.json package-lock.json playwright.config.ts` → empty; `git diff --name-only 8868bce HEAD -- . ':!.loopzai' ':!tests'` → exactly the six files above; no untracked product files; `dependencies` / `devDependencies` identical to `8868bce`. **PASS**
 
 ## Step 5 — Frozen-file audit (criterion 22)
 
-`git diff --stat fb894c2 HEAD -- tests/` → empty. Every prior-cycle test file is
+`git diff --stat fb894c2 HEAD -- tests/` → only `tests/watchlist-csv-static.spec.ts`
+(the authorized amendment, audited above). Every prior-cycle test file is
 byte-identical to its frozen commit: `api`, `cycle2-api`, `cycle2-e2e`,
 `cycle2-functions`, `cycle2-static`, `cycle3-static`, `global-setup` @ `f9e2ee6`;
 `autofill-api` @ `07fbe25`; `autofill-e2e`, `autofill-static` @ `8c2c845`;
@@ -120,81 +150,27 @@ byte-identical to its frozen commit: `api`, `cycle2-api`, `cycle2-e2e`,
 
 ## Step 6 — Spot checks
 
-`grep -c manage-stocks-import-panel components/*.tsx`: only `ImportCsvPanel.tsx`
-(rendered from the modal). Comment-stripped grep of both lib files
-(`sed -E 's#//.*$##' | grep -E "use client|process\.env|\bfetch\(|from\s+['\"](react|next|convex)|require\("`)
-→ **no match in either file**; first non-comment line of the codec is
-`export interface CsvStock {` (no import at all), of the planner
-`import { validateStock } from './watchlist';` (relative only).
+`grep -l manage-stocks-import-panel components/*.tsx` → only `components/ImportCsvPanel.tsx`.
+Raw `grep -cE "'use client'|from 'react'|from 'convex"` → `watchlistCsv.ts: 0`,
+`watchlistImport.ts: 1` (the line-5 comment — the exact false positive the
+amendment addressed); comment-stripped → 0 and 0.
 
-## The two red rows — analysis
+## Execution-log cross-check
 
-**Observed.** `WC-S-24a` fails on `expect(src).not.toMatch(/process\.env/)` and
-`WC-S-24a2` on `expect(src).not.toMatch(/use client/)`. In both cases the match
-is inside the file's **header comment**:
-
-- `lib/watchlistCsv.ts:5` — `// Pure and importable outside React: no imports, no fetch, no process.env`
-- `lib/watchlistImport.ts:5` — `// Pure and importable outside React: no 'use client', no React / Next /`
-
-**What the spec requires (criterion 24 / Architectural constraints):** the codec
-and planner are importable outside React — no `'use client'` directive, no
-React / Next / Convex import — and the codec makes no network request. With
-comments stripped, neither file contains a `'use client'` directive, a
-`process.env` read, a `fetch(`, a `require(`, or a react/next/convex import
-(Step 6 evidence); `WC-U-*` imports both modules directly under the Playwright
-Node runner and every row passes, which is the executable proof of "importable
-outside React". **The product meets criterion 24.** The two frozen assertions
-are over-broad (they should have ignored comments). Under the frozen-test rules I
-may not edit them; this is a finding to report, and an amendment is proposed
-below.
-
-**Verdict logic.** A failing frozen test is a failure and I do not reclassify it.
-The failure is not an implementation defect (the spec commitment is met) and not
-a spec conflict; it is a defect in the frozen grading harness that I cannot
-honestly place in the environment class either (services, fixtures and the dev
-server were all fine) — so the class is `unknown`.
-
-### Failure hypothesis
-
-The two static rows red because their regexes (`/use client/`, `/process\.env/`)
-match the *phrases* quoted in the modules' header comments, not because either
-module has the directive or reads `process.env`. Evidence: the only occurrences
-are on line 5 of each file inside `//` comments; the comment-stripped grep is
-empty; the direct-import unit rows all pass.
-
-### What must change
-
-Either of two paths, both leaving the product's behaviour untouched:
-
-1. **Preferred — human test amendment** (proposals below): narrow the two frozen
-   assertions so they ignore comments (e.g. strip `//…` and `/*…*/` before
-   matching, or match `^\s*['"]use client['"]` for the directive and
-   `\bprocess\.env\b` outside comments).
-2. **Execution retry, no amendment:** reword the two comment lines in
-   `lib/watchlistCsv.ts` (line 5: drop the literal `process.env`) and
-   `lib/watchlistImport.ts` (line 5: drop the literal `'use client'`) — a
-   comment-only change to two files already inside E1's allowed set; no other
-   file changes.
-
-### Expected outcome of the retry
-
-`tests/watchlist-csv-static.spec.ts` WC-S-24a and WC-S-24a2 green, the rest of
-the suite unchanged: `128 passed, 4 skipped, 0 failed`; `tsc` and `build` exit 0;
-E1 set and E2 route set unchanged. Nothing else in this attempt is red — all 16
-browser rows, all 16 codec/planner rows, 24b, 25, E1, E2, the frozen-file audit
-and criterion 22 passed on the first run.
-
-## Amendment proposals
-
-LOOPZAI_AMENDMENT_PROPOSAL: {"targetTest":"tests/watchlist-csv-static.spec.ts: WC-S-24a (criterion 24, D5): lib/watchlistCsv.ts is pure and importable outside React","targetCycle":3,"evidence":"Row fails on expect(src).not.toMatch(/process\\.env/). The only occurrence of 'process.env' in lib/watchlistCsv.ts is line 5, a // header comment ('no imports, no fetch, no process.env'). With comments stripped (sed -E 's#//.*$##') the file matches none of: use client, process.env, fetch(, require(, react/next/convex imports; its first non-comment line is 'export interface CsvStock {' and it has no import statement. tests/watchlist-csv-unit.spec.ts imports it directly under Node and all 11 codec rows pass.","reason":"The assertion is over-broad: it grades comment text, not code. Criterion 24 is about the module having no 'use client' directive and no React/Next/Convex import and making no network request, all of which hold. Amend the assertions in assertPureLib to match on comment-stripped source (or anchor the directive check to a line-start string literal) so the row measures the spec's commitment rather than the wording of a comment."}
-
-LOOPZAI_AMENDMENT_PROPOSAL: {"targetTest":"tests/watchlist-csv-static.spec.ts: WC-S-24a2 (criterion 24, D9): lib/watchlistImport.ts is pure and importable outside React","targetCycle":3,"evidence":"Row fails on expect(src).not.toMatch(/use client/). The only occurrence of 'use client' in lib/watchlistImport.ts is line 5, a // header comment ('Pure and importable outside React: no 'use client', no React / Next / Convex import'). With comments stripped the file matches none of: use client, process.env, fetch(, require(, react/next/convex imports; its only imports are './watchlist' and type-only './watchlistCsv'. tests/watchlist-csv-unit.spec.ts imports it directly under Node and all 5 planner rows (including the 4-in-flight pool and the never-invoked-lookup row) pass.","reason":"Same defect as WC-S-24a: the regex grades the header comment, not code. The module carries no 'use client' directive and no React/Next/Convex import, which is exactly what criterion 24 pins. Amend the same assertPureLib helper to ignore comments so both rows measure the spec's commitment; no product change is warranted."}
+`execution-log.md` entry-0006 claims the amendment edit, a 4/4 static run, a
+128/4/0 suite and a mutation check. Git confirms the edit's scope and that
+`lib/` is untouched; my own runs reproduce 4/4 and 128/4/0. The mutation check
+was not reproduced (it would require temporarily editing product files, which I
+do not do); the in-row `assertStripperWorks` self-check covers the same
+failure mode in the frozen row itself.
 
 ## Verdict
 
-Attempt 1 of 3: **FAIL** on two frozen static rows whose assertions match comment
-text; every product-behaviour row (criteria 1–23, 25, E1, E2) is green and the
-product meets criterion 24 on the evidence above. Not a pass because a failing
-frozen test is a failure; the retry is diagnosed above.
+Attempt 2 of 3: **PASS**. Steps 1–5 are all green: `tsc` 0, `build` 0 with the
+exact E2 route set, `npm test` 128 passed / 4 skipped / 0 failed with every
+prior-cycle row still green, E1 confined to the six allowed files, no frozen
+file altered outside the human-authorized amendment. The cycle's commitments
+(criteria 1–25, E1, E2) are met on the graded tree. Recommendation to Wayne:
+close cycle 3 — final close-out remains his gate.
 
-LOOPZAI_VERDICT: {"result":"fail","hypothesis":"frozen static rows WC-S-24a/24a2 red because /use client/ and /process\\.env/ match phrases inside the header comments of lib/watchlistCsv.ts and lib/watchlistImport.ts; comment-stripped code has no directive, no process.env, no fetch, no react/next/convex import, and the direct-import unit rows pass — a defective frozen assertion, not a product defect; amendment proposed, or reword the two comment lines","failureClass":"unknown","humanJudgment":"policy"}
+LOOPZAI_VERDICT: {"result":"pass"}
