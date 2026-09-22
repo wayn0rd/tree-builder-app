@@ -18,10 +18,23 @@ Add the pure, import-free CSV codec `lib/watchlistCsv.ts` — `serializeWatchlis
 timestamp: 2026-09-22T07:50:00Z
 phase: execution
 cycle: 3
+status: committed
+commitSha: "cd3f236a7dd2326fc0a6366210044a2c6d3665c1"
+filesTouched: [".loopzai/execution-log.md", "components/ManageStocksModal.tsx"]
+milestoneIds: ["M2"]
+completesMilestoneIds: ["M2"]
+```
+Add the Manage Stocks toolbar row under the heading with `Export CSV` (client-side download of `sector-watchlist.csv` built by `serializeWatchlist` from the loaded stocks — no request, no write) and the `Import CSV` button plus hidden `.csv,text/csv` file input (wired to the import run in M4) per spec D1–D3, D13, D15 and criteria 1, 19, 20 (M2).
+
+### entry-0003
+```yaml
+timestamp: 2026-09-22T07:56:00Z
+phase: execution
+cycle: 3
 status: in_progress
 commitSha: null
 filesTouched: []
-milestoneIds: ["M2"]
+milestoneIds: ["M3"]
 completesMilestoneIds: []
 ```
-Add the Manage Stocks toolbar row under the heading with `Export CSV` (client-side download of `sector-watchlist.csv` built by `serializeWatchlist` from the loaded stocks — no request, no write) and the `Import CSV` button plus hidden `.csv,text/csv` file input (wired to the import run in M4) per spec D1–D3, D13, D15 and criteria 1, 19, 20 (M2).
+Add the pure import planner `lib/watchlistImport.ts` — `planImport` (D8 order: ticker validity → already in the watchlist → claimed by an earlier `added` row → tags; first eligible occurrence wins, rejected rows never claim, blank name never rejects), `resolveNames` (blank-name lookups through a handed-in function, at most four in flight, once per distinct ticker, ticker-as-name on a miss or throw, new array returned), `countOutcomes` and the D16 string helpers, per spec D7–D9, D16 and criteria 7, 8, 15, 16 (M3).
