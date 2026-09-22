@@ -1,0 +1,40 @@
+<!-- execution-log.md — checkpointed action entries for the current cycle; entry format per ARCHITECTURE.md §6. -->
+
+### entry-0001
+```yaml
+timestamp: 2026-09-21T23:20:00Z
+phase: execution
+cycle: 2
+status: committed
+commitSha: "d1e56c1688167e99f4e9ae8322ecc0ab4ba1c519"
+filesTouched: [".loopzai/execution-log.md", "lib/sectorSummary.ts"]
+milestoneIds: ["M1"]
+completesMilestoneIds: ["M1"]
+```
+Add the pure, dependency-free `summarizeSector` helper in `lib/sectorSummary.ts` (equal-weight mean over available rows, exact up/down/flat/unavailable counts, `mean: null` never `NaN`) per spec D2, D3, D5, D6, D9 and criterion 7 (M1).
+
+### entry-0002
+```yaml
+timestamp: 2026-09-21T23:32:00Z
+phase: execution
+cycle: 2
+status: committed
+commitSha: "d7aa3c11ec7b8d58f268652214ba626b3731fe52"
+filesTouched: [".loopzai/execution-log.md", "components/SectorCard.tsx"]
+milestoneIds: ["M2"]
+completesMilestoneIds: ["M2"]
+```
+Render the `sector-summary` element inside the existing `SectorCard` header between the tag title and the stock-count pill — text via the row rules `formatChange` / `changeDirection` on the unrounded mean, neutral white pill style (D4), own test id and `data-direction` / `data-up` / `data-down` / `data-flat` / `data-unavailable` / `data-mean` attributes (D10, D11) — so the owner board and the shared page both show it (M2); finalize entry-0001.
+
+### entry-0003
+```yaml
+timestamp: 2026-09-21T23:58:00Z
+phase: execution
+cycle: 2
+status: committed
+commitSha: "d588c3a0958751460a8dbc3c865d07b92fb632bc"
+filesTouched: [".loopzai/execution-log.md", "README.md"]
+milestoneIds: ["M3"]
+completesMilestoneIds: ["M3"]
+```
+Add the README header-summary sentence (criterion 14) and run Execution's regression pass on the finished tree — `npx tsc --noEmit`, `env -u NODE_ENV npm run build` (route set unchanged, E2) and the existing Playwright suite `env -u NODE_ENV -u LOOPZAI_CYCLE npm test` (criterion 11) — recording the results here — `tsc` exit 0; `build` exit 0 with routes `/`, `/_not-found`, `/admin`, `/api/stock`, `/shared/[token]`; `npm test` exit 0 with 72 passed, 2 skipped, 0 failed — no file under `tests/` is added or modified (M3); finalize entry-0002.
