@@ -64,3 +64,16 @@ milestoneIds: ["M5"]
 completesMilestoneIds: ["M5"]
 ```
 Add the README export / import sentence (every pinned literal kept) and run Execution's regression pass on the finished tree — `npx tsc --noEmit`, `npm run build` (route set unchanged), and the existing Playwright suite with `LOOPZAI_CYCLE` unset (expected 92 passed / 3 skipped) — recording the three results here, per spec criteria 22, 23, 25 and E2 (M5). Results on the tree at 0d66f59 (all run with `env -u NODE_ENV`, `LOOPZAI_CYCLE` unset): `npx tsc --noEmit` exit 0; `npm run build` exit 0 with routes `/`, `/_not-found`, `/admin`, `/api/stock`, `/shared/[token]` (E2 unchanged); `npm test` exit 0 — 92 passed, 3 skipped (cycle3-scoped V1, V2; sector-summary-scoped SS-V-E1), 0 failed. Plan-choice notes for Verification: module names are `lib/watchlistCsv.ts`, `lib/watchlistImport.ts`, `components/ImportCsvPanel.tsx` with the plan's exported signatures (plus an extra `importingLabel(i, total)` helper); the panel's Cancel is offered in the file-level-error state; a delimiter-only file reads as `The file is empty.` (assumption-0001).
+
+### entry-0006
+```yaml
+timestamp: 2026-09-22T08:46:00Z
+phase: execution
+cycle: 3
+status: in_progress
+commitSha: null
+filesTouched: []
+milestoneIds: []
+completesMilestoneIds: []
+```
+Apply the human-approved cycle-3 amendment (spec-amendments.md, 2026-09-22T08:44Z) to frozen rows WC-S-24a / WC-S-24a2 only: `assertPureLib` in `tests/watchlist-csv-static.spec.ts` now runs its no-directive / no-process.env / no-fetch / no-React-Next-Convex-import checks over comment-stripped source (string, template and regex literals preserved; stripper self-checked in-row so a broken stripper fails closed) so header comments cannot create false positives, with every protected behavior kept and no product code changed — then re-run tsc, the static spec and the full suite. (This edit to a cycle-3 verification test is made solely under that amendment's explicit authorization.) Results on the amended tree (all with `env -u NODE_ENV`, `LOOPZAI_CYCLE` unset): `npx tsc --noEmit` exit 0; `npm run build` exit 0 with routes `/`, `/_not-found`, `/admin`, `/api/stock`, `/shared/[token]` (E2 unchanged); `npx playwright test tests/watchlist-csv-static.spec.ts` 4 passed; `npm test` exit 0 — 128 passed, 4 skipped (cycle3-scoped V1, V2; sector-summary-scoped SS-V-E1; watchlist-csv-scoped WC-V-E1), 0 failed. Negative proof that the rows still enforce the contract: with a temporary, git-restored `'use client';` / `process.env` line in lib/watchlistCsv.ts and a `fetch(` / `import React from 'react'` line in lib/watchlistImport.ts the matching row fails with its intended message (4/4), while a pure block-comment mutation carrying the same phrases passes. `lib/` untouched. Note: the first full-suite run failed on 3 e2e rows only because a stale `next-server` left on port 3000 by an earlier run was reused while `next build` rewrote `.next` beneath it; after stopping it the suite passed cleanly.
