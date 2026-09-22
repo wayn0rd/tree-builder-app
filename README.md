@@ -14,7 +14,11 @@ snapshots can be shared via tokenized links (`/shared/<token>`) that
 need no sign-in and can be revoked at any time. A **Manage Stocks**
 button in the header opens one ticker-sorted list of every stock
 (ticker, name, tags) with Edit and Delete controls, so entries can be
-maintained without hunting through the cards.
+maintained without hunting through the cards. From the same modal,
+**Export CSV** downloads the watchlist as a `ticker,name,tags` file and
+**Import CSV** previews such a file — skipping tickers already present,
+looking up blank company names, rejecting rows without a tag — and adds
+the new rows only after you confirm.
 
 **Live at:** https://www.sectorwatchlist.com
 

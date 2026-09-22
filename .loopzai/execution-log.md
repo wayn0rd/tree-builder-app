@@ -44,10 +44,23 @@ Add the pure import planner `lib/watchlistImport.ts` — `planImport` (D8 order:
 timestamp: 2026-09-22T08:05:00Z
 phase: execution
 cycle: 3
+status: committed
+commitSha: "521531e99b9e2f43c210eb135339ce6e71bbc7f9"
+filesTouched: [".loopzai/execution-log.md", "app/page.tsx", "components/ImportCsvPanel.tsx", "components/ManageStocksModal.tsx"]
+milestoneIds: ["M4"]
+completesMilestoneIds: ["M4"]
+```
+Wire Import CSV end to end: the file input starts one identified preview run per chosen file (parse → plan → bounded blank-name lookups through `fetchCompanyName`, every post-await update double-guarded by the run id so stale results are dropped), the presentational `components/ImportCsvPanel.tsx` renders the file-level error / `Looking up N names…` / summary / per-row lines / Cancel / `Import N stocks` / `Importing i of N…` / report / Done with the D15 hooks, confirm applies sequential `stocks.add` via an `app/page.tsx` callback (server message extracted, failed rows continue, dismissal locked via ✕ / backdrop / Escape) and fires one quote fetch per added ticker, per spec D10–D17 and criteria 7–13, 15–19 (M4).
+
+### entry-0005
+```yaml
+timestamp: 2026-09-22T08:30:00Z
+phase: execution
+cycle: 3
 status: in_progress
 commitSha: null
 filesTouched: []
-milestoneIds: ["M4"]
+milestoneIds: ["M5"]
 completesMilestoneIds: []
 ```
-Wire Import CSV end to end: the file input starts one identified preview run per chosen file (parse → plan → bounded blank-name lookups through `fetchCompanyName`, every post-await update double-guarded by the run id so stale results are dropped), the presentational `components/ImportCsvPanel.tsx` renders the file-level error / `Looking up N names…` / summary / per-row lines / Cancel / `Import N stocks` / `Importing i of N…` / report / Done with the D15 hooks, confirm applies sequential `stocks.add` via an `app/page.tsx` callback (server message extracted, failed rows continue, dismissal locked via ✕ / backdrop / Escape) and fires one quote fetch per added ticker, per spec D10–D17 and criteria 7–13, 15–19 (M4).
+Add the README export / import sentence (every pinned literal kept) and run Execution's regression pass on the finished tree — `npx tsc --noEmit`, `npm run build` (route set unchanged), and the existing Playwright suite with `LOOPZAI_CYCLE` unset (expected 92 passed / 3 skipped) — recording the three results here, per spec criteria 22, 23, 25 and E2 (M5).
