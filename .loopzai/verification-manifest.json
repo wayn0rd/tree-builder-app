@@ -1,0 +1,12 @@
+{
+  "artifactVersion": 1,
+  "cycle": 3,
+  "frozenAtAttempt": 1,
+  "frozenAtCommit": "74cc6ec8c20cd277059500a2c1586c3d3bde2c55",
+  "baseCommit": "0fc9aebb95efd69247238766cc4bcae9f9630c47",
+  "specSha256": "82266cc8500dc6dec90f0ed53ad35d1ae7c08642eddf8cf8e2a9b126146fced0",
+  "representedAmendmentsSha256": "1ec94606dd706ecf5ada6a7062861ba20bfab456a7c16fb25c94b6ee183e9aaf",
+  "gateManifestSha256": "6dfc70c5c77667ed2cbe727f0925aa0453b27296a33da58440f47fa4dd2309b6",
+  "frozenTests": [],
+  "additions": []
+}
