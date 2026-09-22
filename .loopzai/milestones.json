@@ -5,27 +5,27 @@
     {
       "id": "M1",
       "title": "Pure CSV codec in `lib/watchlistCsv.ts`: `serializeWatchlist` (ticker-sorted, LF, minimal RFC-4180 quoting) and `parseWatchlistCsv` (BOM, CRLF, quotes, CR/LF/CRLF inside quoted fields, blank lines, case-insensitive headers, unknown columns, file-level errors)",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M2",
       "title": "Export CSV in Manage Stocks: client-side download of `sector-watchlist.csv` from the loaded stocks, no request, no write",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M3",
       "title": "Import planner in `lib/`: validate, skip-if-exists dedupe (watchlist, and in-file by first eligible occurrence), blank-name lookup at most four in flight with ticker fallback, per-row outcomes",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M4",
       "title": "Import CSV in Manage Stocks: file picker → preview panel with summary and per-row lines, one identified run per chosen file with stale lookup results dropped → confirm → sequential `stocks.add` with dismissal locked → report, quote fetch for added tickers",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M5",
       "title": "Existing Playwright suite green with fenced rows skipped, `tsc` and `build` exit 0, README sentence",
-      "status": "pending"
+      "status": "complete"
     }
   ]
 }
