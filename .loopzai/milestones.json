@@ -5,17 +5,17 @@
     {
       "id": "M1",
       "title": "Pure `summarizeSector` helper in `lib/`: equal-weight mean over available rows, four exact direction counts, null-safe (never `NaN`)",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M2",
       "title": "Sector card header renders the summary (row-rule formatting, neutral treatment, own test id and data attributes) on the owner board and the shared page",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "M3",
       "title": "Existing Playwright suite green, `tsc` and `build` exit 0, README sentence",
-      "status": "pending"
+      "status": "complete"
     }
   ]
 }
