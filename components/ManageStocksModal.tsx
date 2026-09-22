@@ -9,21 +9,35 @@
 // state (D6). The overlay sits at z-30 so the reused child dialogs (z-40)
 // render above it; DOM order in the dashboard also places it before them.
 //
-// Cycle 3 (CSV export / import, .loopzai/spec.md D1–D3, D13, D15): a toolbar
+// Cycle 3 (CSV export / import, .loopzai/spec.md D1–D3, D10–D17): a toolbar
 // row under the heading carries `Export CSV` (built in the browser from the
 // loaded stocks — no request, no write) and `Import CSV` (a button plus a
-// hidden file input). Neither adds a heading element nor the text
-// `Add stock`, so the frozen Manage Stocks rows keep their shape.
+// hidden file input). Choosing a file starts one identified preview run;
+// only the current run may touch the panel, so a lookup result that
+// arrives after Cancel, dismissal or a replacement file is dropped (D17).
+// Confirming writes the added rows one at a time through the dashboard's
+// `stocks.add` callback with dismissal locked (D11, D14). Nothing here adds
+// a heading element or the text `Add stock`, so the frozen Manage Stocks
+// rows keep their shape (D15).
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import ImportCsvPanel, { ImportPanelState } from './ImportCsvPanel';
+import { fetchCompanyName } from '../lib/quotes';
 import { Stock } from '../lib/watchlist';
-import { EXPORT_FILENAME, serializeWatchlist } from '../lib/watchlistCsv';
+import { EXPORT_FILENAME, parseWatchlistCsv, serializeWatchlist } from '../lib/watchlistCsv';
+import { planImport, resolveNames } from '../lib/watchlistImport';
 
 interface ManageStocksModalProps {
   stocks: Stock[];
   onEdit: (stock: Stock) => void;
   onDelete: (stock: Stock) => void;
   onClose: () => void;
+  /** One `stocks.add`; rejects with the server's own message. */
+  onImportRow: (stock: Omit<Stock, 'id'>) => Promise<void>;
+  /** One quote fetch per added ticker (D12). */
+  onImported: (tickers: string[]) => void;
+  /** D14 lock for the page-level Escape handler. */
+  onImportingChange: (importing: boolean) => void;
 }
 
 export default function ManageStocksModal({
@@ -31,6 +45,9 @@ export default function ManageStocksModal({
   onEdit,
   onDelete,
   onClose,
+  onImportRow,
+  onImported,
+  onImportingChange,
 }: ManageStocksModalProps) {
   // D4: same comparison the sector cards use, on the upper-cased ticker.
   const sorted = [...stocks].sort((a, b) => {
@@ -39,7 +56,21 @@ export default function ManageStocksModal({
     return ta < tb ? -1 : ta > tb ? 1 : 0;
   });
 
+  const [panel, setPanel] = useState<ImportPanelState | null>(null);
+  // D17: identity of the current preview run. Every chosen file bumps it;
+  // Cancel, dismissal and unmount bump it too, so a result from an older
+  // run can never reach the panel.
+  const runIdRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const applying = panel?.phase === 'applying';
+
+  useEffect(() => {
+    return () => {
+      runIdRef.current += 1;
+      onImportingChange(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // D2 / D3: the export is the stocks already on the page, serialised by
   // the pure codec (ticker-sorted, LF, no BOM) and handed to the browser as
@@ -57,12 +88,87 @@ export default function ManageStocksModal({
     setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
-  // D13: the file input is cleared after every choice so the same file can
-  // be chosen twice in a row. The import run itself is wired in M4.
-  function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
+  // D13 / D17: an event handler (never an effect), so React StrictMode
+  // cannot double-run it. The input is cleared so the same file can be
+  // chosen twice in a row. Every chosen file starts its own run; every
+  // update after an await is guarded by both the ref and the state's own
+  // runId. Requests in flight are not aborted — they finish and are dropped.
+  async function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    const runId = runIdRef.current + 1;
+    runIdRef.current = runId;
+    const existing = stocks; // snapshot at choice time (D7: outcomes fixed at preview)
+    const text = await file.text();
+    if (runIdRef.current !== runId) return;
+    const parsed = parseWatchlistCsv(text);
+    if (parsed.error !== null) {
+      setPanel({ runId, phase: 'preview', error: parsed.error, plan: [], pending: 0 });
+      return;
+    }
+    const plan = planImport(parsed.rows, existing);
+    const pendingTickers = new Set<string>();
+    for (const r of plan) if (r.lookupPending) pendingTickers.add(r.ticker);
+    const pending = pendingTickers.size;
+    setPanel({ runId, phase: 'preview', error: null, plan, pending });
+    if (pending === 0) return;
+    const resolved = await resolveNames(plan, fetchCompanyName, (remaining) => {
+      if (runIdRef.current !== runId) return; // stale progress: dropped
+      setPanel((p) =>
+        p && p.runId === runId && p.phase === 'preview' ? { ...p, pending: remaining } : p
+      );
+    });
+    if (runIdRef.current !== runId) return; // stale result: dropped (D17)
+    setPanel((p) =>
+      p && p.runId === runId && p.phase === 'preview'
+        ? { ...p, plan: resolved, pending: 0 }
+        : p
+    );
+  }
+
+  // D10: Cancel discards the preview, writes nothing, returns to the list.
+  function handleCancel() {
+    runIdRef.current += 1;
+    setPanel(null);
+  }
+
+  // D11 / D12 / D14: sequential stocks.add in file order; a refusal marks
+  // that row failed and the rest continue; nothing written is undone; a
+  // skipped duplicate is never promoted when its claimant fails.
+  async function handleConfirm() {
+    const s = panel;
+    if (!s || s.phase !== 'preview' || s.error !== null || s.pending > 0) return;
+    const runId = s.runId;
+    const plan = s.plan.map((r) => ({ ...r }));
+    const targets = plan.filter((r) => r.outcome === 'added');
+    if (targets.length === 0) return;
+    onImportingChange(true);
+    const added: string[] = [];
+    for (let i = 0; i < targets.length; i++) {
+      setPanel({ runId, phase: 'applying', plan: [...plan], index: i + 1, total: targets.length });
+      const r = targets[i];
+      try {
+        await onImportRow({ ticker: r.ticker, name: r.name ?? r.ticker, tags: r.tags });
+        added.push(r.ticker);
+      } catch (err) {
+        r.outcome = 'failed';
+        r.reason = err instanceof Error ? err.message : String(err);
+      }
+    }
+    onImportingChange(false);
+    onImported(added);
+    setPanel({ runId, phase: 'report', plan: [...plan] });
+  }
+
+  function handleDone() {
+    setPanel(null);
+  }
+
+  // D14: ✕ and the backdrop are inert while rows are being written.
+  function requestClose() {
+    if (applying) return;
+    onClose();
   }
 
   return (
@@ -70,7 +176,7 @@ export default function ManageStocksModal({
       data-testid="manage-stocks-backdrop"
       className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-4"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) requestClose();
       }}
     >
       <div
@@ -84,7 +190,7 @@ export default function ManageStocksModal({
             type="button"
             aria-label="Close Manage Stocks"
             title="Close"
-            onClick={onClose}
+            onClick={requestClose}
             className="rounded-md px-2 py-1 text-lg leading-none text-gray-500 hover:bg-gray-100 hover:text-gray-900"
           >
             ✕
@@ -92,7 +198,8 @@ export default function ManageStocksModal({
         </div>
 
         {/* Cycle 3 D1 / D15: toolbar row — no heading element, no
-            `Add stock` text, no borrowed test id. */}
+            `Add stock` text, no borrowed test id. Import stays available
+            while a preview or report shows, not while writing. */}
         <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-2">
           <button
             data-testid="manage-stocks-export"
@@ -105,8 +212,9 @@ export default function ManageStocksModal({
           <button
             data-testid="manage-stocks-import"
             type="button"
+            disabled={applying}
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Import CSV
           </button>
@@ -116,12 +224,20 @@ export default function ManageStocksModal({
             type="file"
             accept=".csv,text/csv"
             className="hidden"
-            onChange={handleFileChosen}
+            disabled={applying}
+            onChange={(e) => void handleFileChosen(e)}
           />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-2">
-          {sorted.length === 0 ? (
+          {panel !== null ? (
+            <ImportCsvPanel
+              state={panel}
+              onCancel={handleCancel}
+              onConfirm={() => void handleConfirm()}
+              onDone={handleDone}
+            />
+          ) : sorted.length === 0 ? (
             <p
               data-testid="manage-stocks-empty"
               className="py-8 text-center text-sm text-gray-500"

@@ -4,6 +4,9 @@
 // D2 (login is the front door), U1–U3 (sign-in screen, not-invited wall,
 // signed-in header), D11 (Cycle-1 UX parity on Convex storage), F2–F4.
 // Cycle 3: "Manage Stocks" header button + modal (U1/U2/U4, D6, D9, D10).
+// Cycle 3 (CSV export / import): the modal's import writes only through the
+// existing stocks.add mutation (D11), Escape is inert while rows are being
+// written (D14), and each added ticker gets one quote fetch (D12).
 
 import { useAuthActions } from '@convex-dev/auth/react';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
@@ -18,6 +21,16 @@ import StockForm from '../components/StockForm';
 import WatchlistBoard from '../components/WatchlistBoard';
 import { Stock } from '../lib/watchlist';
 import { formatRefreshTime, useQuotes } from '../lib/useQuotes';
+
+/** Convex surfaces a mutation's thrown Error as
+ *  `[CONVEX M(stocks:add)] [Request ID: …] Server Error\nUncaught Error:
+ *  <message>\n    at handler …`; the import report shows the server's own
+ *  line (spec: "reported as failed with the server's message"). */
+function serverMessage(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  const m = /Uncaught (?:[A-Za-z]*Error): ([^\n]*)/.exec(raw);
+  return (m ? m[1] : raw).trim();
+}
 
 function LoadingScreen() {
   return (
@@ -58,6 +71,8 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
   const [pendingDelete, setPendingDelete] = useState<Stock | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  // Cycle 3 D14: true while an import is writing rows; Escape is inert.
+  const [importing, setImporting] = useState(false);
   const didInitQuotes = useRef(false);
 
   // null = server list still loading (R5: no flash of empty-state).
@@ -98,13 +113,13 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
         setEditing(null);
       } else if (pendingDelete) {
         setPendingDelete(null);
-      } else {
+      } else if (!importing) {
         setManageOpen(false);
       }
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [manageOpen, formOpen, pendingDelete]);
+  }, [manageOpen, formOpen, pendingDelete, importing]);
 
   async function handleSave(data: Omit<Stock, 'id'>) {
     if (editing) {
@@ -117,6 +132,21 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
     if (!quotes[data.ticker]) {
       void fetchOne(data.ticker);
     }
+  }
+
+  // Cycle 3 D11: one ordinary stocks.add per imported row; a refusal
+  // rejects with the server's own message so the report can show it.
+  async function handleImportRow(data: Omit<Stock, 'id'>) {
+    try {
+      await addStock(data);
+    } catch (err) {
+      throw new Error(serverMessage(err));
+    }
+  }
+
+  // Cycle 3 D12: one quote fetch per ticker an import added.
+  function handleImported(tickers: string[]) {
+    for (const t of tickers) void fetchOne(t);
   }
 
   async function handleConfirmDelete() {
@@ -227,6 +257,9 @@ function Dashboard({ email, isAdmin }: { email: string; isAdmin: boolean }) {
             }}
             onDelete={(stock) => setPendingDelete(stock)}
             onClose={() => setManageOpen(false)}
+            onImportRow={handleImportRow}
+            onImported={handleImported}
+            onImportingChange={setImporting}
           />
         )}
 

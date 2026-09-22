@@ -31,10 +31,23 @@ Add the Manage Stocks toolbar row under the heading with `Export CSV` (client-si
 timestamp: 2026-09-22T07:56:00Z
 phase: execution
 cycle: 3
+status: committed
+commitSha: "4e83f0af20f6d38f0c9eedc5e4eeacdfc3afc7c3"
+filesTouched: [".loopzai/execution-log.md", "lib/watchlistImport.ts"]
+milestoneIds: ["M3"]
+completesMilestoneIds: ["M3"]
+```
+Add the pure import planner `lib/watchlistImport.ts` — `planImport` (D8 order: ticker validity → already in the watchlist → claimed by an earlier `added` row → tags; first eligible occurrence wins, rejected rows never claim, blank name never rejects), `resolveNames` (blank-name lookups through a handed-in function, at most four in flight, once per distinct ticker, ticker-as-name on a miss or throw, new array returned), `countOutcomes` and the D16 string helpers, per spec D7–D9, D16 and criteria 7, 8, 15, 16 (M3).
+
+### entry-0004
+```yaml
+timestamp: 2026-09-22T08:05:00Z
+phase: execution
+cycle: 3
 status: in_progress
 commitSha: null
 filesTouched: []
-milestoneIds: ["M3"]
+milestoneIds: ["M4"]
 completesMilestoneIds: []
 ```
-Add the pure import planner `lib/watchlistImport.ts` — `planImport` (D8 order: ticker validity → already in the watchlist → claimed by an earlier `added` row → tags; first eligible occurrence wins, rejected rows never claim, blank name never rejects), `resolveNames` (blank-name lookups through a handed-in function, at most four in flight, once per distinct ticker, ticker-as-name on a miss or throw, new array returned), `countOutcomes` and the D16 string helpers, per spec D7–D9, D16 and criteria 7, 8, 15, 16 (M3).
+Wire Import CSV end to end: the file input starts one identified preview run per chosen file (parse → plan → bounded blank-name lookups through `fetchCompanyName`, every post-await update double-guarded by the run id so stale results are dropped), the presentational `components/ImportCsvPanel.tsx` renders the file-level error / `Looking up N names…` / summary / per-row lines / Cancel / `Import N stocks` / `Importing i of N…` / report / Done with the D15 hooks, confirm applies sequential `stocks.add` via an `app/page.tsx` callback (server message extracted, failed rows continue, dismissal locked via ✕ / backdrop / Escape) and fires one quote fetch per added ticker, per spec D10–D17 and criteria 7–13, 15–19 (M4).
